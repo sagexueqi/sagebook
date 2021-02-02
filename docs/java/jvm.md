@@ -47,9 +47,10 @@ public User test2() {
 - 上述的Major GC后仍然没有连续空间分配对象，抛出`OutOfMemoryException`
 
 **一般对象在年轻代的Eden区分配**
-- 对象优先在Eden区进行分配, 如果Eden的空间不足，是要转移其他存活对象，而不是尝试在年老代创建
+> 对象优先在Eden区进行分配, 如果Eden的空间不足，是要转移其他存活对象，而不是尝试在年老代创建
+
 - 如果Eden区有足够的连续空间分配对象，直接分配对象 -> 结束
-- 当Eden区无法直接分配对象(需要保证年老代有足够的空间把年轻代存活对象放进去)：
+- 当Eden区无法直接分配对象`需要保证年老代有足够的空间把年轻代存活对象放进去`：
   - 如果: 老年代的可用空间大于年轻代当前所有对象的大小, 触发`MinorGC`后，再次在Eden区分配对象
   - 如果: 老年代的可用空间不足 && 老年代预留空间足够，触发`MajorGC`（目的在于让晋升和S0存储不下的对象进入年老代）-> 触发MinorGC后，再次在Eden区分配对象
     - 如果年老代空间仍不足，抛出`OutOfMemoryExcetption`
@@ -72,7 +73,7 @@ public User test2() {
 ### MinorGC、MajorGC与Old GC
 
 #### MinorGC
-- 年轻代GC，即Young GC
+- 年轻代GC，即Young GC；以ParNew收集器为例，在GC日志中显示的是`[ParNew: 3412467K->59681K(3774912K), 0.0971990 secs] 9702786K->6354533K(24746432K), 0.0974940 secs] [Times: user=0.95 sys=0.00, real=0.09 secs]`
 - 因为Java对象具大多具备朝生夕死的特性，所以YGC会非常频繁，回收速度比较快
 - 在各种收集器中，YGC时都会暂停用户线程，即`stop the world`
 
@@ -84,7 +85,9 @@ public User test2() {
 
 #### FullGC
 - 对整个堆空间进行GC，一般是由于老年代或元空间内存不足、分配失败而触发
+- GC日志中的显示`[Full GC (Ergonomics) [PSYoungGen: 544K->0K(9216K)] [ParOldGen: 6144K->6627K(10240K)] 6688K->6627K(19456K), [Metaspace: 3286K->3286K(1056768K)], 0.0063048 secs] [Times: user=0.01 sys=0.00, real=0.01 secs]`
 - 当出现FGC时，经常至少会伴随一次YGC(不绝对，可以通过不同收集器的参数进行配置)。FGC的速度一般比YGC慢10倍以上
+- 基本上可以认为MajorGC与FullGC是一个概念，这是因为现在这两个概念已经完全混淆
 
 ----
 
@@ -226,6 +229,19 @@ _全部使用```标记-复制```算法_
 - 并发(Concurrent): 用户线程和GC线程同时运行(不一定并行，可能会交替执行-这是CPU和操作系统调度决定的)，用户程序运行，而垃圾回收线程在另一个核上运行。CMS、G1
 
 ----
+
+## JVM常见内存溢出与解决方案
+- 前置条件：dump文件
+```
+-XX:+HeapDumpOnOutOfMemoryError  
+-XX:HeapDumpPath=/usr/local/app/oom
+```
+- 一般都是代码问题导致的
+- `MetaSpace OutofMemory Exception`: 元空间内存溢出，当达到Max上限值并Full GC之后，仍然无法分配空间
+  - 使用了不合理的JVM参数，导致元空间内存分配过小
+  - 
+
+## GC调优
 
 参考:
 > 深入理解Major GC, Full GC, CMS: https://yq.aliyun.com/articles/140544
