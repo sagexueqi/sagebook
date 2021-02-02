@@ -18,20 +18,51 @@
   - 常量
   - 静态变量
 
-----
+## Java对象内存分配与GC策略
 
-## Java对象内存分配策略
-- 对象优先在Eden区进行分配：大多数情况下，对象在新生代的Eden区进行分配。当Eden区空间不足时，触发YGC
-  - YGC后再次尝试在Eden区分配对象，如果仍无法分配，尝试在年老代分配对象
-  - 年老代没有足够连续的空间分配对象，触发```FGC(不绝对会触发YGC)```后，再次尝试分配对象
-  - 在FGC后仍然没有足够连续空间分配对象，退化成 `Serial Old GC（针对CMS搜集器场景）` 基于 **标记-整理** 算法进行回收整理，再次分配对象
-  - 如果全部分配失败，抛出 ```OutOfMemory``` 异常，JVM宕机应用不在提供服务
-- 大对象直接在年老代进行分配：连续的数组、非常大的字符串。
-  - 可以通过```-XX:PretenureSizeThreshold```指定大对象的阈值
-  - 指定大对象也是有意义的，可以在一定程度上避免大对象在YGC时频繁的复制；但是，也会带来问题，大对象占用年老代空间，根据Java对象朝生夕死的特点，很久才会被FGC清除
-- 长期存活的对象进入年老代：可以理解为被15次YGC后仍然存活的对象可以直接进入年老代
-  - 可以通过```-XX:MaxTenuringThreshold```指定长期存活的阈值
+**对象在栈内存分配机制**
+- 对象在分配内存时，JVM会基于逃逸分析先尝试在栈内存分配，大概逻辑是判断对象是否可能被外部引用，如果不会被外部应用，有可能会在栈内存分配
+```java
+public void test1() {
+    User u = new User();
+    // do something
+    // 方法的返回值为void，u的生命周期和方法一直，不会被外部应用，jvm会尝试在栈分配对象
+}
+```
+```java
+public User test2() {
+    User u = new User();
+    // do something
+    // 方法的返回值为User，u可能被外部引用，故不会在栈内存分配
+    return u;
+}
+```
+
+**大对象直接在年老代分配**
+- 根据`-XX:PretenureSizeThreshold`参数的配置，大于该值的对象直接在老年代分配内存
+- 如果: 老年代有足够的连续空间分配对象，直接分配
+- 如果: 老年代没有足够的连续空间分配对象
+  - 此时老年代没有进行垃圾回收，则进行 `MajorGC-老年代垃圾回收`
+  - 此时老年代正在进行并发回收，会发生`Concurrent Mode Failure`,虚拟机启动 `Serial Old` 收集器 `stop the world` 单线程进行Major GC(原因: JVM设计)
+- 上述的Major GC后仍然没有连续空间分配对象，抛出`OutOfMemoryException`
+
+**一般对象在年轻代的Eden区分配**
+- 对象优先在Eden区进行分配, 如果Eden的空间不足，是要转移其他存活对象，而不是尝试在年老代创建
+- 如果Eden区有足够的连续空间分配对象，直接分配对象 -> 结束
+- 当Eden区无法直接分配对象(需要保证年老代有足够的空间把年轻代存活对象放进去)：
+  - 如果: 老年代的可用空间大于年轻代当前所有对象的大小, 触发MinorGC后，再次在Eden区分配对象
+  - 如果: 老年代的可用空间不足 && 老年代预留空间足够，触发`MajorGC`（目的在于让晋升和S0存储不下的对象进入年老代）-> 触发MinorGC后，再次在Eden区分配对象
+    - 如果年老代空间仍不足，抛出`OutOfMemoryExcetption`
+  - 如果老年代预留空间不足(担保失败)，触发`MajorGC`基于 **标记-整理** 算法进行回收整理年老代 -> 触发MinorGC后，再次在Eden区分配对象 
+    - 如果年老代空间仍不足，抛出`OutOfMemoryExcetption`
+- 如果全部分配失败，抛出 ```OutOfMemory``` 异常，JVM宕机应用不在提供服务
+
+**长期存活的对象进入年老代**
+- 可以理解为被15次YGC后仍然存活的对象可以直接进入年老代
+- 通过```-XX:MaxTenuringThreshold```指定长期存活的阈值
   - 如果设置较小，会导致新对象过早的进入到年老代；而设置过大，会让本应该进入年老代存活的对象在YGC时频繁的复制
+
+![jvm_object_alloc](./imgs/jvm_object_alloc.jpg)
 
 > 参考：https://www.cnblogs.com/xjshi/p/7338847.html
 
@@ -45,18 +76,15 @@
 - 因为Java对象具大多具备朝生夕死的特性，所以YGC会非常频繁，回收速度比较快
 - 在各种收集器中，YGC时都会暂停用户线程，即`stop the world`
 
-#### Old GC
+#### MajorGC
 - 年老代GC，以CMS收集器为例，在GC日志中显示的是 `[GC (CMS Initial Mark) [1 CMS-initial-mark: 22630K(125696K)] 22743K(126848K), 0.0011803 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`
 - 对于不同的收集器，有不同的 `stop the world` 的阶段
   - CMS收集器在初始标记和重新标记阶段
   - Prarllel Old整个阶段
 
-#### MajorGC
-- 年老代/元空间的`stop the world`阶段的GC，即Full GC
-  - Full GC的次数 = 老年代GC时 stop the world的次数
-  - Full GC的时间 = 老年代GC时 stop the world的总时间
-- 当出现FGC时，经常至少会伴随一次YGC(不绝对，可以通过不同收集器的参数进行配置)。FGC的速度一般比YGC慢10倍以上。
-- 所以，年老代的GC不完全是Full GC，只有其中的stw的阶段计入到fgc的次数和时间
+#### FullGC
+- 对整个堆空间进行GC，一般是由于老年代或元空间内存不足、分配失败而触发
+- 当出现FGC时，经常至少会伴随一次YGC(不绝对，可以通过不同收集器的参数进行配置)。FGC的速度一般比YGC慢10倍以上
 
 ----
 
@@ -118,7 +146,7 @@ _全部使用```标记-复制```算法_
 **Serial Old收集器**
 - 基于 ```标记-整理``` 算法（还有压缩，Mark-Sweep-Compact）
 - 单线程收集
-- 作为CMS收集器的后备预案，即CMS年老代回收后仍没有内存分配对象时使用
+- 作为CMS收集器的后备预案，即CMS GC 运行期间，Old 区预留的空间不足以分配给新的对象，此时收集器会发生退化
 
 **Parallel Old收集器**
 - JDK1.8的默认老年代垃圾收集器
@@ -209,3 +237,5 @@ _全部使用```标记-复制```算法_
 > 来一道 PerfMa 面试必考的 GC 题: https://www.codercto.com/a/24558.html  
 >
 > G1垃圾回收器详解: https://www.jianshu.com/p/aef0f4765098
+>
+> Java中9种常见的CMS GC问题分析与解决: https://tech.meituan.com/2020/11/12/java-9-cms-gc.html 
