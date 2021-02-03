@@ -232,16 +232,44 @@ _全部使用```标记-复制```算法_
 
 ## JVM常见内存溢出与解决方案
 - 前置条件：dump文件
+
 ```
 -XX:+HeapDumpOnOutOfMemoryError  
 -XX:HeapDumpPath=/usr/local/app/oom
 ```
-- 一般都是代码问题导致的
-- `MetaSpace OutofMemory Exception`: 元空间内存溢出，当达到Max上限值并Full GC之后，仍然无法分配空间
-  - 使用了不合理的JVM参数，导致元空间内存分配过小
-  - 
 
-## GC调优
+- 一般都是代码问题导致的
+
+**java.lang.OutOfMemoryError：Metaspace**-元空间内存溢出，当达到Max上限值并Full GC之后，仍然无法分配空间
+- 使用了不合理的JVM参数，导致元空间内存分配过小
+- 动态代理没有缓存代理类，而是每次都使用`.getProxy()`生成动态代理类，导致Class类元信息在元空间膨胀
+- 使用自定义classloader，重复创建classloader或者重复加载class
+
+**java.lang.OutOfMemoryError: Java heap space**-堆内存溢出
+- 常见的内存溢出问题；需要根据Dump文件分析此时堆内存中占比较大的对象，并以此作为排查依据，分析发生问题的代码逻辑；同时要结合GC日志，确认是否是由于堆内存空间不足导致溢出等
+- 原因1: 堆内存空间较小，系统又经常创建存活时间较久的大对象，导致新对象无法创建或存活对象无法进入年老代
+- 原因2: 在循环中大量创建对象，或者在list中add大量对象；表象为dump文件中的大对象一般是应用内的对象
+- 原因3: SQL查询没有分页，一次返回大量数据集，年轻代和年老代均无法分配空间；工具、拦截器打印输入输出的日志，输出流对象日志，导致堆内存打满
+
+**java.lang.StackOverflowError**-栈内存溢出
+- 原因1: 无限递归，还是要尽量避免递归的使用，即使使用，也要控制好跳出的条件
+- 原因2: 循环中大量创建局部变量
+- 原因3: 线程栈内存参数值过小，不符合应用的实际场景
+
+----
+
+## GC常见问题与解决方案
+**表象: Young GC、Full GC频繁，一次Full GC后，年老代GC日志显示空间变化非常大**
+- 原因分析: 新对象过早的晋升到年老代，导致Old区有大量本该被回收的垃圾。过早晋升不会直接导致GC性能降低，而当Eden区空间不足触发Young GC前会要求检查年老代空间或者年老代空间提供担保，此时由于这些垃圾对象的问题，会导致失败，进而引发Full GC
+- 解决方案：
+  - 检查`-XX:MaxTenuringThreshold`参数配置是否过小，默认为15次YGC晋升到Old区。也可以根据应用特点，适当调大
+  - 年轻代或Eden区内存过小`-Xmn`: 导致分配对象时，无法在Eden区完成分配，提前触发YGC，导致对象提前进入Old区；后续分配空间时，YGC前需要Old区提供空间担保失败，进而触发Full GC
+----
+
+## JVM调优
+
+**调优的整体思路**
+- ddd
 
 参考:
 > 深入理解Major GC, Full GC, CMS: https://yq.aliyun.com/articles/140544
