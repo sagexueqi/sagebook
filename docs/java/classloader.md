@@ -104,3 +104,39 @@ public abstract class ClassLoader {
 ----
 
 ## Tomcat的类加载机制
+
+### Tomcat的类加载流程
+
+**特点：** 
+- 每一个应用都有独立的`WebAppClassLoader`，实现应用的ClassLoader隔离
+- 默认打破双亲委派机制，目的在于快速的加载应用中的类
+
+**加载流程**
+- 当`WebAppClassLoader`加载一个类时，首先向上委托给`BootstrapClassLoader`进行加载：目的是加载java核心类
+- 如果`BootstrapClassLoader`加载不到，`WebAppClassLoader`首先加载`WEB-INF/classes`中的类
+- `WebAppClassLoader`其次加载`WEB-INF/lib`中jar包的类：_通过这一步，在日常开发中，如果以来的第三方工具包中有类需要替换，那我们可以在工程中定义一个同包同名的类，实现自己的逻辑_
+- 通过`ExtClassLoader`加载`${JAVA_HOME}/jre/ext`路径下的类
+- 通过`CommonClassLoader`加载`${TOMCAT_HOME}/lib`下的类: _通过这一步，tomcat实现了公共类的不隔离和应用间类的隔离_
+
+- Tomcat默认使用上述打破双亲委派机制加载类，可以通过配置恢复为双亲委派机制
+```
+            BootstrapClassloader
+                     |
+        SystemClassloader(ExtClassloader)
+                     |
+        CommonClassloader(TOMCAT_HOME/lib)
+                /               \
+    WebAppClassloader        WebAppClassloader
+```
+
+----
+
+### Tomcat热部署的实现流程
+- Tomcat运行DEMOND线程，监听war包文件的变化
+- 销毁当前的WebAppClassLoader，重新解压war包，并创建新的WebAppClassLoader
+- 这样做的好处在于，不重复使用WebAppClassLoader。也避免由于类加载器没有卸载，导致元空间内存溢出的问题
+
+----
+
+参考:
+> java类的加载机制: https://www.cnblogs.com/ityouknow/p/5603287.html
