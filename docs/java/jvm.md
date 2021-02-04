@@ -24,6 +24,7 @@
 
 **谁进行空间担保？**
 - 空间担保指的是老年代进行空间分配担保
+- 在Eden区不足以分配对象，触发Young GC前，需要年老代提供空间担保
 
 **为什么要进行空间担保？**
 - 新生代使用`标记-复制`算法，如果大量对象在Young GC后仍然存活，且`S0`无法存放怎么办？此时需要把S0的对象移动到老年代
@@ -36,6 +37,7 @@
 - Young GC后 检查3: `老年代最大可用连续空间大于新生代需要晋升的对象大小`，担保成功，完成Young GC并分配对象
   - 否则`担保失败`触发`promotion failed-晋升失败`问题，通知CMS线程这是一次垃圾回收失败，触发CMS GC(即Full GC)
   - 当执行本次CMS GC时，由于有用户线程分配内存失败，触发`concurrent mode failure-并发模式失败`，导致退化为`Serial-Old`收集器
+- 空间担保过程结束后，如果对象仍然无法进入年老代，抛出`OutOfMemoryException`
 
 ![jvm_空间担保](./imgs/jvm_空间担保.png)
 
@@ -68,25 +70,14 @@ public User test2() {
 - 上述的Major GC后仍然没有连续空间分配对象，抛出`OutOfMemoryException`
 
 **一般对象在年轻代的Eden区分配**
-> 对象优先在Eden区进行分配, 如果Eden的空间不足，是要转移其他存活对象，而不是尝试在年老代创建
-
-- 如果Eden区有足够的连续空间分配对象，直接分配对象 -> 结束
-- 当Eden区无法直接分配对象`需要保证年老代有足够的空间把年轻代存活对象放进去`：
-  - 如果: 老年代的可用空间大于年轻代当前所有对象的大小, 触发`MinorGC`后，再次在Eden区分配对象
-  - 如果: 老年代的可用空间不足 && 老年代预留空间足够，触发`MajorGC`（目的在于让晋升和S0存储不下的对象进入年老代）-> 触发MinorGC后，再次在Eden区分配对象
-    - 如果年老代空间仍不足，抛出`OutOfMemoryExcetption`
-  - 如果老年代预留空间不足(担保失败)，触发`MajorGC`基于 **标记-整理** 算法进行回收整理年老代 -> 触发MinorGC后，再次在Eden区分配对象 
-    - 如果年老代空间仍不足，抛出`OutOfMemoryExcetption`
-- 如果全部分配失败，抛出 ```OutOfMemory``` 异常，JVM宕机应用不在提供服务
+- 如果Eden区空间足够分配，直接分配对象
+- 如果Eden区空间不足，触发YGC + 空间担保 机制，分配内存空间
+- 如果上述过程完成后，仍没有空间分配，抛出`OutOfMemoryException`内存溢出
 
 **长期存活的对象进入年老代**
 - 可以理解为被15次YGC后仍然存活的对象可以直接进入年老代
 - 通过```-XX:MaxTenuringThreshold```指定长期存活的阈值
   - 如果设置较小，会导致新对象过早的进入到年老代；而设置过大，会让本应该进入年老代存活的对象在YGC时频繁的复制
-
-![jvm_object_alloc](./imgs/jvm_object_alloc.jpg)
-
-> 参考：https://www.cnblogs.com/xjshi/p/7338847.html
 
 ----
 
@@ -252,15 +243,24 @@ _全部使用```标记-复制```算法_
 
 ----
 
-## JVM常见内存溢出与解决方案
-- 前置条件：dump文件
+## JVM调优与问题处理
+**调优的整体思路**
+- 准备工作: DUMP文件、jmap、jvisualvm
+- 原则: 降低Full GC的频率，让对象尽量在年轻代朝生夕死
+- 以代码优化为主，jvm参数的调整尽量还是以堆栈内存为主，配合输出gc日志、oom的dump日志等
+- 基于dump文件分析内存泄露与线程死锁；通过gc日志分析full gc发生的场景与条件；结合监控平台，分析问题的诱因
 
-```
+```shell
+# 打印dump文件
 -XX:+HeapDumpOnOutOfMemoryError  
 -XX:HeapDumpPath=/usr/local/app/oom
-```
 
-- 一般都是代码问题导致的
+# 输出gc日志
+-XX:+PrintGCDetails  -XX:+PrintGCTimeStamps  -XX:+PrintGCDateStamps  -Xloggc:./gc.log
+```
+----
+
+### JVM常见内存溢出与解决方案
 
 **java.lang.OutOfMemoryError：Metaspace**-元空间内存溢出，当达到Max上限值并Full GC之后，仍然无法分配空间
 - 使用了不合理的JVM参数，导致元空间内存分配过小
@@ -280,7 +280,7 @@ _全部使用```标记-复制```算法_
 
 ----
 
-## GC常见问题与解决方案
+### GC常见问题与解决方案
 **表象: Young GC、Full GC频繁，一次Full GC后，年老代GC日志显示空间变化非常大**
 - 原因分析: 
   - 新对象过早的晋升到年老代，导致Old区有大量本该被回收的垃圾；
@@ -308,13 +308,11 @@ _全部使用```标记-复制```算法_
   - Full GC垃圾收集器退化为`Serial Old`收集器: 
     - 在Young GC后会将对象晋升到老年代失败(没有足够连续空间)，导致发生`promotion failed 晋升失败`现象，正常来说CMS会对old进行垃圾回收；
     - 如果此时有CMS在回收垃圾，会产生`concurrent mode failure 收集器无法处理浮动垃圾`问题，收集器退化为`Serial Old`导致耗时增加
-
+- 解决方案:
+  - 让CMS收集器，在回收指定次数年老代后，整理内存空间，减少碎片: `-XX:CMSFullGCsBeforeCompaction`
+  - 堆内存空间过大，导致正常Full GC的时间过久，合理控制堆内存大小
+  - 提早触发CMS Old GC，预留年老代空间，修改参数`-XX:CMSInitiatingOccupancyFraction=N`设定CMS在对内存占用率达到N%的时候开始GC
 ----
-
-## JVM调优
-
-**调优的整体思路**
-- ddd
 
 参考:
 > 深入理解Major GC, Full GC, CMS: https://yq.aliyun.com/articles/140544
