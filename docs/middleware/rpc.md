@@ -84,9 +84,9 @@
   - 强一致性数据保证
   - zk的分布式一致性算法与raft相似，需要一半节点确认，而且会发生脑裂问题；
   - 集群中一半的节点不可用，会导致整个注册中心集群失效
-  - zk客户端编码复杂
 - 更适合作为配置中心
   - zk可以作为配置中心 + 注册中心共存的方案
+  - 注册中心强一致的必要性？
 
 ### AP模型
 **代表：Eureka**
@@ -114,7 +114,20 @@
 
 ## Dubbo框架
 
-### Dubbo如何支撑高并发
+### Dubbo为何高性能
+- 通信模型
+  - 基于Netty实现NIO通信框架，IO多路复用；单机长连接+序列化，二进制传输
+  - 单机长连接: consumer与每一个provider建立长连接
+- 线程模型
+  - IO线程与工作线程分离，异步化，future/callable模式
+- 内存模型
+  - 大量使用本地缓存，避免反射、动态代理带来的性能消耗
+- 自定义的高效SPI框架，避免Java SPI带来的不灵活：每一个实现都会被初始化
+- 高可用模型
+  - 心跳机制: 双向心跳
+  - 容错机制: 快速失败、自动切换、重试
+  - 超时机制
+  - 优雅下线机制
 
 ----
 
@@ -122,8 +135,32 @@
 
 ----
 
-### Dubbo应用下线策略(优雅停机、客户端感知后操作)
+### Dubbo服务上下线策略(优雅停机、客户端感知后操作)
 
+**引入Provider服务流程，以Spring容器为例**
+- Invoker是核心，
+
+**服务下线流程，以Spring容器为例**
+- `ShutdownHookListener`监听Spring容器的ClosedEvent事件
+- `ZookeeperRegistry.destory()`将服务的注册信息在zk中移除并关闭与zk的连接
+  - dubbo注册的是临时节点，连接关闭，节点也被删除
+  - 目的: 新的client端不再与当前的节点建立通信连接，以及Clinet端缓存新的Provider列表
+
+- `DubboProtocol.destroy()`首先将当前的provider关闭，之后再关闭对下游调用的client
+  - 先关闭自身，再关闭对下游的依赖: 否则上游此时再有请求进来，会导致失败
+  - 发送`sentReadOnlyEvent`: 通知consumer该连接已不可用，不要再发送新的请求(该过程是轮询发送且是oneway方式)
+  - 指定一个超时时间，将provider的还在进行的线程执行完毕
+
+- Dubbo默认实现的问题:
+  - `DubboProtocol.destroy()`只有一个上限: 超时时间**或**此时没有工作线程，就会强制关闭。
+    - `sentReadOnlyEvent`是一个oneway的过程，不知道client有没有收到 && 收到到摘除invoker也有时间差 
+    - provider从注册中心摘除和consumer移除该provider的Invoker过程有时间差，此时可能consumer仍然有请求发送到已经关闭的provider上，
+    - 而provider在这个时间差内，因为当前没有工作线程直接就结束，导致调用失败
+  - 根据dubbo官网描述，在容器中需要调用`DubboShutdownHook`的逻辑
+  - 解决方案: 
+    - 在`DubboProtocol.destroy()`过程前，设置一个停机等待的下限: 因为第一步已经断开了zk的连接，会通知consumer移除该provider的invoker，提供一个缓冲时间
+    - 自定义监听Spring容器的ClosedEvent事件，手工新增ShutdownHook
+    - Kill -9 无解，也需要发布平台一起配合。如果对Hook改造了停机下限，那么发布平台强制停止的时间不能小于这个值
 ----
 
 ### Dubbo容错机制、负载均衡机制
@@ -132,8 +169,12 @@
 
 ### Dubbo与Spring Cloud
 - RPC功能都是Dubbo和Spring Cloud中的一个子集
-- Dubbo和Spring Cloud
+  - RPC只关心进程间通信
+  - Dubbo/Spring Cloud: 
+- Dubbo和Spring Cloud都是微服务治理的全套解决方案
+- Dubbo更注重语言级别的远程方法调用，并没有像Spring Cloud提供网关、限流、Eureka的解决方案；但提供了较为成熟的Dubbo Admin
+- 在Spring cloud体系中，也可以融合Dubbo；Dubbo + zk/Nacos代替fegin + eureka + robbin
+- 没有谁优谁劣，按需使用，考虑Team的技术演进、技术与运维能力
 
 ----
-
 ## 关于ServiceMesh的一些思考
