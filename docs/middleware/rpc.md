@@ -87,6 +87,9 @@
 - 更适合作为配置中心
   - zk可以作为配置中心 + 注册中心共存的方案
   - 注册中心强一致的必要性？
+- Dubbo选用zk的原因？
+  - 历史问题: Dubbo初始阶段没有很好地AP选项，zk的强一致性是可以作为注册中心方案
+  - zk临时节点特性，可以让consumer快速感知provider的上下线状态
 
 ### AP模型
 **代表：Eureka**
@@ -131,27 +134,39 @@
 
 ----
 
-### Dubbo的心跳机制
-
-----
-
 ### Dubbo服务上下线策略(优雅停机、客户端感知后操作)
 
-**引入Provider服务流程，以Spring容器为例**
-- Invoker是核心，
+#### 引入Provider服务流程，以Spring容器为例
+- **启动服务容器，连接zk，获取`/dubbo`下的service和provider的url信息**
 
-**服务下线流程，以Spring容器为例**
-- `ShutdownHookListener`监听Spring容器的ClosedEvent事件
-- `ZookeeperRegistry.destory()`将服务的注册信息在zk中移除并关闭与zk的连接
+- **`Invoker`是核心，Client对于每个Service的每一个Provider都会包装成为一个Invoker**
+
+- **一个Service的多个Invoker被包装成一个`Cluster`**
+
+- **`ReferenceBean.getObject()`基于动态代理生成代理对象，包含一个`Cluster`**
+
+- **当执行远程方法调用时，实际上是通过`Cluster`完成与目标Provider的通信**
+  - Cluster负责基于一定的负载均衡策略，选择一个Invoker进行通信
+  - Cluster包含负载均衡 + 重试策略
+
+- **当Provider上线或下线后，客户端zk监听器`NotifyListener`刷新**
+  - 采用类似CopyOnWriteArrayList的读写分离策略，先创建新的invoker列表
+  - 将invokers指向新的列表
+  - 销毁旧的invoker
+
+#### Provider下线流程，以Spring容器为例
+- **`ShutdownHookListener`监听Spring容器的ClosedEvent事件**
+
+- **`ZookeeperRegistry.destory()`将服务的注册信息在zk中移除并关闭与zk的连接**
   - dubbo注册的是临时节点，连接关闭，节点也被删除
   - 目的: 新的client端不再与当前的节点建立通信连接，以及Clinet端缓存新的Provider列表
 
-- `DubboProtocol.destroy()`首先将当前的provider关闭，之后再关闭对下游调用的client
-  - 先关闭自身，再关闭对下游的依赖: 否则上游此时再有请求进来，会导致失败
+**3. `DubboProtocol.destroy()`首先将当前的provider关闭，之后再关闭对下游调用的client**
   - 发送`sentReadOnlyEvent`: 通知consumer该连接已不可用，不要再发送新的请求(该过程是轮询发送且是oneway方式)
   - 指定一个超时时间，将provider的还在进行的线程执行完毕
+  - 关闭自身Server，再关闭对下游的依赖: 否则上游此时再有请求进来，会导致失败
 
-- Dubbo默认实现的问题:
+**4. Dubbo默认实现的问题:**
   - `DubboProtocol.destroy()`只有一个上限: 超时时间**或**此时没有工作线程，就会强制关闭。
     - `sentReadOnlyEvent`是一个oneway的过程，不知道client有没有收到 && 收到到摘除invoker也有时间差 
     - provider从注册中心摘除和consumer移除该provider的Invoker过程有时间差，此时可能consumer仍然有请求发送到已经关闭的provider上，
@@ -163,10 +178,6 @@
     - Kill -9 无解，也需要发布平台一起配合。如果对Hook改造了停机下限，那么发布平台强制停止的时间不能小于这个值
 ----
 
-### Dubbo容错机制、负载均衡机制
-
-----
-
 ### Dubbo与Spring Cloud
 - RPC功能都是Dubbo和Spring Cloud中的一个子集
   - RPC只关心进程间通信
@@ -175,6 +186,12 @@
 - Dubbo更注重语言级别的远程方法调用，并没有像Spring Cloud提供网关、限流、Eureka的解决方案；但提供了较为成熟的Dubbo Admin
 - 在Spring cloud体系中，也可以融合Dubbo；Dubbo + zk/Nacos代替fegin + eureka + robbin
 - 没有谁优谁劣，按需使用，考虑Team的技术演进、技术与运维能力
+- Spring Cloud的通讯基于Http协议、Dubbo自定义协议 + NIO长连接
 
 ----
 ## 关于ServiceMesh的一些思考
+- 在很多rpc框架中，通信、负载、容错、序列化等功能全部与应用耦合在一起，当rpc框架升级时，应用服务必然受到影响，会降低服务SLA
+- ServiceMesh的理念，个人认为，在Consumer和Provider建立起一个Proxy
+  - Proxy直接完成进程间通讯、负载、容错 - 即 SideCar
+  - 应用端只需要维护与Proxy的通讯、序列化流程，这种核心流程一旦稳定近乎不会改变
+  - 伴随着中间件的升级，只需要更新Proxy即可；建立公共Proxy，保证服务SLA不受影响
