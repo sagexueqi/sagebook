@@ -181,8 +181,7 @@
 ### Dubbo与Spring Cloud
 - RPC功能都是Dubbo和Spring Cloud中的一个子集
   - RPC只关心进程间通信
-  - Dubbo/Spring Cloud: 
-- Dubbo和Spring Cloud都是微服务治理的全套解决方案
+  - Dubbo/Spring Cloud: 微服务治理的全套解决方案
 - Dubbo更注重语言级别的远程方法调用，并没有像Spring Cloud提供网关、限流、Eureka的解决方案；但提供了较为成熟的Dubbo Admin
 - 在Spring cloud体系中，也可以融合Dubbo；Dubbo + zk/Nacos代替fegin + eureka + robbin
 - 没有谁优谁劣，按需使用，考虑Team的技术演进、技术与运维能力
@@ -195,3 +194,18 @@
   - Proxy直接完成进程间通讯、负载、容错 - 即 SideCar
   - 应用端只需要维护与Proxy的通讯、序列化流程，这种核心流程一旦稳定近乎不会改变
   - 伴随着中间件的升级，只需要更新Proxy即可；建立公共Proxy，保证服务SLA不受影响
+
+----
+## SOA与微服务
+- **SOA与微服务的目标均在于应用服务的解耦与服务化的解决方案**
+- **SOA与微服务的主要区别**
+  - 在SOA体系中，服务间通讯主要依赖ESB企业服务总线。而ESB是作为一个单点组件存在的，且限制了技术栈必须为Java或某一周ESB支持的技术；
+  - 微服务体系中，服务网关类似于ESB的功能；但是服务网关可以通过HTTP这种无绑定技术的协议进行通讯；同时提供限流、安全、版本管理等功能
+  - SOA更面相于上层企业架构的解耦；而微服务的粒度更新，在同一个领域中，可以有N多的微服务组成，更易于持续集成、架构松耦合、高内聚
+
+----
+
+**参考：**
+> Dubbo——服务调用、服务暴露、服务引用过程: https://www.jianshu.com/p/15e77db72b75
+>
+> 优雅停机: https://dubbo.apache.org/zh/docs/v2.7/user/examples/graceful-shutdown/
