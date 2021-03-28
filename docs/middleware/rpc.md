@@ -155,9 +155,9 @@
   - 销毁旧的invoker
 
 #### Provider下线流程，以Spring容器为例
-- **`ShutdownHookListener`监听Spring容器的ClosedEvent事件**
+**1. `ShutdownHookListener`监听Spring容器的ClosedEvent事件**
 
-- **`ZookeeperRegistry.destory()`将服务的注册信息在zk中移除并关闭与zk的连接**
+**2. `ZookeeperRegistry.destory()`将服务的注册信息在zk中移除并关闭与zk的连接**
   - dubbo注册的是临时节点，连接关闭，节点也被删除
   - 目的: 新的client端不再与当前的节点建立通信连接，以及Clinet端缓存新的Provider列表
 
