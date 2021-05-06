@@ -77,7 +77,61 @@ public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName
   - 依赖注入只会完成需要`@Autowire`、`setter`、`构造方法依赖`Bean的注入;也许Bean中还有其他属性需要初始化
   - 对于动态代理类，原始被代理的对象应该是一个基本功能完备的，例如Aware、其他前置处理都完成的Bean
 
-### Spring容器初始化流程
+### Context容器初始化流程
+
+**容器初始化流程总结**
+- BeanFactory初始化
+- 装载Beandefinition，执行BeanFactoryPostProcessor，用以修改Bean定义
+- 装载BeanPostProcessor，用以完成Bean初始化前后的操作
+- 完成Bean的初始化、依赖注入、实例化
+- 完成容器刷新，发送Event
+
+_容器初始化整体源码流程_
+
+[AbstractApplicationContext.java]
+```java
+public void refresh() throws BeansException, IllegalStateException {
+	synchronized (this.startupShutdownMonitor) {
+		// Prepare this context for refreshing.
+		prepareRefresh();
+
+		// Tell the subclass to refresh the internal bean factory.
+		ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+		// Prepare the bean factory for use in this context.
+		prepareBeanFactory(beanFactory);
+
+		try {
+			// Allows post-processing of the bean factory in context subclasses.
+			postProcessBeanFactory(beanFactory);
+
+			// Invoke factory processors registered as beans in the context.
+			invokeBeanFactoryPostProcessors(beanFactory);
+
+			// Register bean processors that intercept bean creation.
+			registerBeanPostProcessors(beanFactory);
+
+			// Initialize message source for this context.
+			initMessageSource();
+	
+			// Initialize event multicaster for this context.
+			initApplicationEventMulticaster();
+
+			// Initialize other special beans in specific context subclasses.
+			onRefresh();
+
+			// Check for listener beans and register them.
+			registerListeners();
+
+			// Instantiate all remaining (non-lazy-init) singletons.
+			finishBeanFactoryInitialization(beanFactory);
+
+			// Last step: publish corresponding event.
+			finishRefresh();
+		}
+	}
+}
+```
 
 ### Bean的创建流程
 
