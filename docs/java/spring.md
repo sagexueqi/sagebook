@@ -1,6 +1,6 @@
 # Spring
 
-## 基本概念
+## Spring Core
 
 #### IOC: 控制反转
 - Spring作为IOC容器，可以理解为一个非常大的Map
@@ -62,17 +62,24 @@ public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName
 **如何强制使用Cglib生成动态代理类**```target-proxy=true```
 - 如果不使用该配置，默认根据类是否实现了接口，决定采用哪种方式实现动态代理
 
-**参考:**
+**如何使Spring AOP生效**
+- 在方法调用时，必须通过被增强的Bean调用才可以，此时是使用的代理类对象
+- 如果直接this.xxx()或者super.xxx()是无效的，因为该方法并没有被增强
+
+参考:
 > 从动态代理实现到Spring AOP看这一篇就够了: https://mp.weixin.qq.com/s/EZ62B31Wxy47ISpiEKKVlg
 
 ----
 
-## Spring Core
+## Spring Context
 
 ### 基本概念
 
 - 实例化：创建Bean的原始对象，可以理解为只调用构造方法
 - 依赖注入：根据BeanDefinition完成依赖Bean的实例化 + 注入 + 初始化(这是一个嵌套递归的过程，最底层的bean没有依赖，所以只有实例 + 初始)
+  - 构造方法注入
+  - Setter注入
+  - @Autowaire注入 - 反射
 - 初始化：依赖注入后到Bean完全可以使用之前
   - 依赖注入只会完成需要`@Autowire`、`setter`、`构造方法依赖`Bean的注入;也许Bean中还有其他属性需要初始化
   - 对于动态代理类，原始被代理的对象应该是一个基本功能完备的，例如Aware、其他前置处理都完成的Bean
@@ -92,41 +99,58 @@ _容器初始化整体源码流程_
 ```java
 public void refresh() throws BeansException, IllegalStateException {
 	synchronized (this.startupShutdownMonitor) {
-		// Prepare this context for refreshing.
+		// 容器刷新前的预处理操作：设置容器启动标示等操作.
 		prepareRefresh();
 
-		// Tell the subclass to refresh the internal bean factory.
+		// 创建BeanFactory
 		ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-		// Prepare the bean factory for use in this context.
+		// BeanFactory使用前预处理：
+		// 设置ClassLoader
+		// 添加 ApplicationContextAwareProcessor，处理Aware类的BeanPostProcessor，添加不同的属性
 		prepareBeanFactory(beanFactory);
 
 		try {
-			// Allows post-processing of the bean factory in context subclasses.
+			// BeanFactory后置处理，不常用.
 			postProcessBeanFactory(beanFactory);
 
-			// Invoke factory processors registered as beans in the context.
+			// 执行BeanFactoryPostProcessors，以修改BeanDefinition（例如替换属性的value、移除某一些冲突的BeanDefinition）
+			/**
+			* 1. 获取BeanDefinitionRegistryPostProcessor实现类的Bean并执行postProcessBeanDefinitionRegistry方法
+			* (一般来说我们可以直接实现该接口，这也是最常用的方式)
+			*
+			* 2. 获取直接实现BeanFactoryPostProcessor的Bean并执行postProcessBeanFactory方法
+			*
+			* 3. BeanFactoryPostProcessor的执行顺序，不受@Order注解控制；
+			* 优先排序并执行实现PriorityOrdered接口的Bean，然后再排序并执行实现Ordered接口的Bean
+			*/
 			invokeBeanFactoryPostProcessors(beanFactory);
 
-			// Register bean processors that intercept bean creation.
+			// 实例化并注册BeanPostProcessor实现类的Bean，用以扩展Bean初始化(init-method、afterPropertiesSet)前后的动作并返回被扩展的Bean对象
+			// 要在实例化应用程序Bean之前完成BeanPostProcessor实现类Bean的创建,并注册到BeanFactory中
+			// 这也说明，在BeanPostProcessor的所有实现类中不能注入应用程序Bean（因为它还没创建呢！）
+			// 优先排序并执行实现PriorityOrdered接口的Bean，然后再排序并执行实现Ordered接口的Bean。同样不受@Order控制
 			registerBeanPostProcessors(beanFactory);
 
-			// Initialize message source for this context.
+			// 初始化消息处理，可理解为国际化支持
 			initMessageSource();
 	
-			// Initialize event multicaster for this context.
+			// 初始化容器事件广播组件，用来向各种ApplicationListener发送容器的Event
 			initApplicationEventMulticaster();
 
-			// Initialize other special beans in specific context subclasses.
+			// 执行刷新方法，子类中实现刷新逻辑
+			// 例如在Spring-boot-web中，在这个阶段创建createWebServer-web容器
 			onRefresh();
 
-			// Check for listener beans and register them.
+			// 注册容器事件ApplicationListener监听器Bean，只是将BeanName注册到广播组件中
+			// 这样可以在监听器中，使用应用程序Bean
 			registerListeners();
 
-			// Instantiate all remaining (non-lazy-init) singletons.
+			// 实例 + 初始化 非懒加载 的 应用程序Bean
+			// beanFactory.preInstantiateSingletons() ---> AbstractBeanFactory.createBean() ---> AbstractAutowireCapableBeanFactory.doCreateBean() 完成
 			finishBeanFactoryInitialization(beanFactory);
 
-			// Last step: publish corresponding event.
+			// 完成容器初始化，并发布 ContextRefreshedEvent 事件.
 			finishRefresh();
 		}
 	}
@@ -188,10 +212,16 @@ protected Object initializeBean(String beanName, Object bean, @Nullable RootBean
 }
 ```
 
-### Spring 循环依赖
 
-### Spring 常用扩展点
+### Spring循环依赖
 
 ----
 
-## Spring Boot
+## Spring Jdbc
+
+----
+
+## Spring 常用扩展点
+
+----
+
