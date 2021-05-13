@@ -103,11 +103,21 @@ public void refresh() throws BeansException, IllegalStateException {
 		prepareRefresh();
 
 		// 创建BeanFactory
+		/*
+		 * 1. createBeanFactory(): 创建BeanFctory
+		 *
+		 * 2. loadBeanDefinitions(): 装载BeanDefinition
+		 */
 		ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-		// BeanFactory使用前预处理：
-		// 设置ClassLoader
-		// 添加 ApplicationContextAwareProcessor，处理Aware类的BeanPostProcessor，添加不同的属性
+		// BeanFactory使用前预处理
+		/**
+		 * 1. 设置BeanFactory的ClassLoader
+		 *
+		 * 2. 添加ApplicationContextAwareProcessor：为实现Aware的Bean在初始化前注入所需的对象
+		 *
+		 * 3. 添加ApplicationListenerDetector：将实现ApplicationListener的Bean,在初始化后，通过BeanPostProcessor的After方法注册到Context中，为实现监听容器事件
+		 */
 		prepareBeanFactory(beanFactory);
 
 		try {
@@ -116,20 +126,26 @@ public void refresh() throws BeansException, IllegalStateException {
 
 			// 执行BeanFactoryPostProcessors，以修改BeanDefinition（例如替换属性的value、移除某一些冲突的BeanDefinition）
 			/**
-			* 1. 获取BeanDefinitionRegistryPostProcessor实现类的Bean并执行postProcessBeanDefinitionRegistry方法
-			* (一般来说我们可以直接实现该接口，这也是最常用的方式)
-			*
-			* 2. 获取直接实现BeanFactoryPostProcessor的Bean并执行postProcessBeanFactory方法
-			*
-			* 3. BeanFactoryPostProcessor的执行顺序，不受@Order注解控制；
-			* 优先排序并执行实现PriorityOrdered接口的Bean，然后再排序并执行实现Ordered接口的Bean
-			*/
+			 * 1. 获取BeanDefinitionRegistryPostProcessor实现类的Bean并执行postProcessBeanDefinitionRegistry方法
+			 * (一般来说我们可以直接实现该接口，这也是最常用的方式)
+			 *
+			 * 2. 获取直接实现BeanFactoryPostProcessor的Bean并执行postProcessBeanFactory方法
+			 *
+			 * 3. BeanFactoryPostProcessor的执行顺序，不受@Order注解控制；
+			 * 优先排序并执行实现PriorityOrdered接口的Bean，然后再排序并执行实现Ordered接口的Bean
+			 * 
+			 * 4. BeanFactoryPostProcessor会通过BeanFactory的getBean方法提前实例化，但是不会注入属性和初始化，所以无法使用Bean
+			 */
 			invokeBeanFactoryPostProcessors(beanFactory);
 
 			// 实例化并注册BeanPostProcessor实现类的Bean，用以扩展Bean初始化(init-method、afterPropertiesSet)前后的动作并返回被扩展的Bean对象
-			// 要在实例化应用程序Bean之前完成BeanPostProcessor实现类Bean的创建,并注册到BeanFactory中
-			// 这也说明，在BeanPostProcessor的所有实现类中不能注入应用程序Bean（因为它还没创建呢！）
-			// 优先排序并执行实现PriorityOrdered接口的Bean，然后再排序并执行实现Ordered接口的Bean。同样不受@Order控制
+			/**
+			 * 1. 要在实例化应用程序Bean之前，完成BeanPostProcessor实现类Bean的提前实例化，并注册到BeanFactory中
+			 * 
+			 * 2. 优先排序并执行实现PriorityOrdered接口的Bean，然后再排序并执行实现Ordered接口的Bean。同样不受@Order控制
+			 *
+			 * 3. 与BeanFactoryProcessor一样，Bean都是被提前实例化的，所以不能在实现类中注入应用程序Bean
+			 */
 			registerBeanPostProcessors(beanFactory);
 
 			// 初始化消息处理，可理解为国际化支持
@@ -142,8 +158,12 @@ public void refresh() throws BeansException, IllegalStateException {
 			// 例如在Spring-boot-web中，在这个阶段创建createWebServer-web容器
 			onRefresh();
 
-			// 注册容器事件ApplicationListener监听器Bean，只是将BeanName注册到广播组件中
-			// 这样可以在监听器中，使用应用程序Bean
+			// 注册容器事件ApplicationListener监听器Bean
+			/**
+			 * 1. 将ApplicationListener实现类的BeanName注册到ApplicationEventMulticaster容器事件广播组件
+			 * 
+			 * 2. 使用beanName的方式，可以在监听器中使用应用程序Bean
+			 */
 			registerListeners();
 
 			// 实例 + 初始化 非懒加载 的 应用程序Bean
@@ -193,16 +213,31 @@ protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable
 
 // 初始化Bean
 protected Object initializeBean(String beanName, Object bean, @Nullable RootBeanDefinition mbd) {
-	// 注入Bean需要的Aware
+	// 为实现Aware接口的Bean，执行对应的注入属性或值的方法
+	/**
+	 * 1. 实现BeanNameAware接口的Bean，注入当前的BeanName
+	 * 2. 实现BeanClassLoaderAware接口的Bean，注入当前的ClassLoader
+	 * 3. 实现BeanFactoryAware接口的Bean，注入当前的BeanFactory
+	 */
     invokeAwareMethods(beanName, bean);
 
 	Object wrappedBean = bean;
-    // 执行BeanPostProcessor的before方法，返回被增强或处理的Bean对象（会执行AbstractAutoProxyCreator）
 	if (mbd == null || !mbd.isSynthetic()) {
+		// 执行BeanPostProcessor的before方法
+		/**
+		 * 1. 所有BeanPostProcessor已经在registerBeanPostProcessors阶段，按照优先顺序添加到BeanFactory中
+		 * 
+		 * 2. 在这个阶段，调用AbstractAutoProxyCreator生成动态代理类对象（因为被代理对象已经被实例化了，可以createProxy了）
+		 */
 		wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 	}
 
-	// 执行init方法（先执行afterPropertiesSet 再执行init）
+	// 执行初始化逻辑方法（先执行afterPropertiesSet 再执行init）
+	/*
+	 * 1. 如果Bean实现了InitializingBean接口，首先执行afterPropertiesSet()方法
+	 *
+	 * 2. 执行Bean的init-method方法
+	 */
 	invokeInitMethods(beanName, wrappedBean, mbd);
 
     // 执行BeanPostProcessor的after方法（会执行AbstractAutoProxyCreator）
