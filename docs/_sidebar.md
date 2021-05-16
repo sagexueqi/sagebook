@@ -1,6 +1,6 @@
 * 基础知识
     * [网络与HTTP]
-    * [加解密]
+    * [安全](basic/security.md)
     * [算法]
 
 * Java
