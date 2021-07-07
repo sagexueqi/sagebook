@@ -28,7 +28,7 @@
   - 拒绝旧id的Leader的同步写入请求，Leader降级为Flower
   - 增加阈值，即使Leader心跳超时，也要有一个容错时间，让Leader完全shutdown
 
-**Nacos一致性算法distro分析：**
+**Nacos一致性算法distro分析（注册中心）：**
 
 ----
 
@@ -37,3 +37,5 @@
 ## 分布式ID生成方案
 
 ## 分布式事务方案
+
+## 分布式配置中心
