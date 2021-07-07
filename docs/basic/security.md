@@ -1,5 +1,38 @@
 # 安全
 
+## 安全编码
+
+**Java编码时需要考虑的安全问题**
+
+- 资源释放：
+  - 在finally代码块中关闭打开的资源；
+  - 基于JAVA7的`try-with-resources`特性，对于实现`Autocloseable`接口的资源，可以在`try`语句块中创建，之后会自动关闭
+
+  ```java
+    try (InputStream is = new FileInputStream(src);
+        OutputStream os = new FileOutputStream(tar);) {
+            byte[] b = new byte[1024];
+            int len;
+            while ((len = is.read(b)) != -1) {
+                os.write(b);
+            }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+  ```
+- 数值计算问题:
+  - 针对支付（退款）金额、收取（退还）手续费这种有含义的字段，建议全部使用正数传递；在代码逻辑中根据业务场景进行`+`/`-`运算
+  - 针对账户余额非负的保证：一种是SQL做`-`运算时，使用条件`当前余额>扣减金额`；或者将余额字段设置为`decimal unsinged`的无符号类型，字段值只可以为正数，具体`+`/`-`逻辑在业务代码中实现
+
+**在设计WEB API时需要考虑的安全问题**
+- XSS、
+
+> 参考陌陌安全团队的JAVA安全编码指南：
+>
+> https://github.com/momosecurity/rhizobia_J/wiki/JAVA%E5%AE%89%E5%85%A8%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83#14
+
+----
+
 ## 常见加解密算法
 
 ----
