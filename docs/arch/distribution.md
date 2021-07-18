@@ -11,10 +11,39 @@
 
 ----
 
-## RAFT协议
+## Raft协议
+
+### Raft基础
+
+**Raft如何保持分布式系统的一致性**
+
+- 强Leader机制：由Leader接收所有的客户端请求，强Leader机制会使分布式系统变得简单
+- 日志复制机制：Leader收到客户端请求后，将其先记录下来（此时数据变更未提交到状态机存储）。通过广播（心跳）机制复制到各个Follower节点，当收到一半及以上Follower节点成功响应后，本地提交变更并响应客户端请求（否则会hang住客户端请求直到客户端超时）；最后通过广播（心跳）机制通知所有Follower提交变更
+
+> 日志复制机制也就说明了，为什么在基于Raft一致性算法的集群以及ZAB，`集群节点数 = 2N + 1 (N为集群可接受最大无效节点数)`。
+
+**Raft算法中的三种角色**
+
+- Leader：领导人，负责接收客户端请求/响应，并完成日志复制过程。在一个任期(Term)中，Leader节点会一直认为自己是Leader直到宕机或关闭
+- Follower：跟随者，领导者的日志和数据的副本。存在Follower的意义也是在于保证当Leader挂掉后，集群快速恢复并保证数据的一致性
+- Candidate：候选人，感知到Leader并达到`选举超时`的Follwer会将自身转变为Candidate，请求其他节点为自己投票(Vote Request)
+
+![raft_角色流转](./imgs/raft_角色流转.png)
+
+> 在正常情况下，集群中只有一个领导者(Leader)和多个跟随者(Follower)。
+>
+> 客户端可能会向Follower发送请求，但是在Raft算法中只有Leader接收客户端，Follwer会将请求进行重定向
+>
+> 一些性能优化的方案中，会增加Observer(观察者)或者Follower节点响应查询请求。优点在于减少了转发重定向的过程
+>
+> 如果使用观察者节点的模式，会有数据不一致的问题，但观察者只做同步，最终一致性是可以接收的；而Follower节点，存在某一个节点的log index与Leader相差较多的情况（1个Follower发生网络分区时）
+
+
 
 **参考：**
 > RAFT论文中文版：https://github.com/maemual/raft-zh_cn/blob/master/raft-zh_cn.md
+>
+> RAFT算法动画演示：http://thesecretlivesofdata.com/raft/
 
 ----
 
