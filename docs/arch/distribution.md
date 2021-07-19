@@ -73,14 +73,44 @@
 > 根据Raft论文给我们的提示，一半在150-300ms之间随机生成
 
 
-### Raft日志复制的流程
+### Raft日志复制
 
-### Raft集群的异常与恢复
+日志复制是实现分布式系统一致性的共识机制
+
+**日志的组成结构：** 所属任期号、索引位置号、日志内容
+
+#### 1. Leader接收到请求
+
+**a) Leader收到客户端的请求后，会将请求进行记录(仅记录，变更并没有提交)，接着将日志内容包装到`心跳`RPC中，并行广播给其他Follower节点并hang住客户端响应**
+- 心跳和日志复制调用的时同一个RPC；只是心跳广播没有日志内容
+- Follower节点收到心跳后，会重置心跳超时计数器
+
+**b) 当一半及以上的Follower节点响应成功后，Leader会将修改持久化到存储中，并响应客户端成功**
+- 因为Leader自己也缓存了日志，只要有一半的Follower响应成功，就表示集群中绝大多数节点已经认同这一次修改
+
+**c) Leader再次发送心跳广播，通知其他Follower可以将本次任期内的，指定index的日志持久化到存储中**
+
+> 为什么先响应请求，再发送心跳通知其他节点提交？
+>
+> 将二阶段提交优化为一阶段(大多数节点回应成功即可)，此时无需同步的发送确认心跳广播，降低了一半的消息延迟
+
+#### 2. Follower接收到请求
+
+**根据Raft算法的定义，集群中只有Leader可以对外提供请求/响应服务**
+
+- Follower直接拒绝客户端请求，并将领导者的地址返回给客户端：实现简单粗暴，但是会增加重新连接到leader的消耗
+- 直接将请求转发给Leader，并进行后续的共识决策：对Client来说影响最小，共识完成后，由该Follower节点响应客户端请求(Zookeeper是这种实现)
+
+#### 3. 关于读操作的一致性
+
+### Raft的安全性
 
 **参考：**
 > RAFT论文中文版：https://github.com/maemual/raft-zh_cn/blob/master/raft-zh_cn.md
 >
 > RAFT算法动画演示：http://thesecretlivesofdata.com/raft/
+>
+> zookeeper-客户端发写请求给follower，是转发给leader写？: https://blog.csdn.net/waltonhuang/article/details/106097257
 
 ----
 
