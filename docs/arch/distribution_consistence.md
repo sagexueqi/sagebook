@@ -116,6 +116,8 @@
 > RAFT算法动画演示：http://thesecretlivesofdata.com/raft/
 >
 > zookeeper-客户端发写请求给follower，是转发给leader写？: https://blog.csdn.net/waltonhuang/article/details/106097257
+>
+> Raft-共识算法解析: https://yuerer.com/Raft-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95%E8%A7%A3%E6%9E%90/
 
 ----
 
