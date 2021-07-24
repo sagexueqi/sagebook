@@ -13,7 +13,7 @@
 * 中间件
 
     * [RPC](middleware/rpc.md)
-    * [消息队列]
+    * [消息队列](middleware/mq.md)
     * [数据库]
     * [缓存]
     * [定时任务]
@@ -21,15 +21,15 @@
 
 * 区块链
 
-* 技术架构
-    * [分布式一致性](arch/distribution_consistence.md)
+* 分布式
+    * [分布式一致性](distribution/distribution_consistence.md)
     * [分布式事务]
     * [分布式锁]
     * [分布式ID生成]
 
 * 业务架构
     * [账务与清结算]
-    * [热点账户]
+    * [业务技术方案]
 
 * 系统架构
     * [多活架构]
