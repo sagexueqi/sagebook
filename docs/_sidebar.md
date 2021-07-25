@@ -1,47 +1,58 @@
 * 基础知识
     * [安全](basic/security.md)
-    * [网络与HTTP]
+    * [网络与HTTP](basic/network_http.md)
     * [算法]
 
 * Java
 
     * [JavaSE](java/javase.md)
+    * [并发编程](java/concurrent.md)
     * [JVM](java/jvm.md)
     * [ClassLoader](java/classloader.md)
+    * [Spring](java/spring.md)
 
-* 开发框架
+* 数据库与缓存
 
-    * [Spring基础](framework/spring.md)
+    * [MySQL](db_cache/mysql.md)
+    * [Redis](db_cache/redis.md)
 
 * 中间件
 
     * [RPC](middleware/rpc.md)
     * [消息队列](middleware/mq.md)
-    * [数据库]
-    * [缓存]
-    * [定时任务]
-    * [监控体系]
+    * [配置中心与注册中心]
 
-* 分布式原理与技术
-    * [分布式一致性](distribution/distribution_consistence.md)
+* 技术架构
+
+    * [分布式原理](tech_arch/distribution_consistence.md)
     * [分布式事务]
     * [分布式锁]
-    * [分布式ID生成]
+    * [分布式ID策略]
     * [分库分表]
-
-* 业务架构
-    * [账务与清结算]
-    * [业务技术方案](biz/biz_tech.md)
+    * [缓存数据库一致性]
 
 * 系统架构
-    * [多活架构]
-    * [系统高可用]
-    * [系统性能]
-    
-* 架构原理与方法论
-    * [DDD](arch/arch_ddd.md)
-    * [稳定性建设]
-    * [架构杂想]
-    * [开发工具]
 
-* 区块链
+    * [多活架构]
+    * [限流]
+    * [容错降级]
+    * [系统性能优化]
+
+* 业务架构
+
+    * [账务清结算]
+    * [热点账户方案]
+    * [超时订单设计]
+    * [通知回调系统]
+
+* 架构理论
+
+    * [DDD](arch/arch_ddd.md)
+    * [设计模式]
+    * [架构杂想]
+    * [稳定性与可用性]
+
+* 其他
+
+    * [收藏夹](others/favorites.md)
+    * [区块链]
