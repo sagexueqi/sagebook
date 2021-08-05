@@ -26,7 +26,7 @@
 * 技术架构
 
     * [分布式原理](tech_arch/distribution_consistence.md)
-    * [分布式事务]
+    * [分布式事务](tech_arch/distribution_transaction.md)
     * [分布式锁]
     * [分布式ID策略]
     * [分库分表]
@@ -37,6 +37,7 @@
     * [多活架构]
     * [限流]
     * [容错降级]
+    * [微服务网关]
     * [系统性能优化]
 
 * 业务架构
@@ -56,4 +57,5 @@
 * 其他
 
     * [收藏夹](others/favorites.md)
+    * [工作生活]
     * [区块链]
