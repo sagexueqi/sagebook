@@ -57,5 +57,6 @@
 * 其他
 
     * [收藏夹](others/favorites.md)
+    * [读书笔记](others/read_notes.md)
     * [工作生活]
     * [区块链]
