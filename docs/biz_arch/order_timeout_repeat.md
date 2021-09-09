@@ -28,11 +28,32 @@
 
 - 异步化：捞取超时记录后，可以压到本地线程池异步操作（要注意应用shutdown时，为pool增加hook）
 
-### 延迟队列超时处理
+### 延迟消息超时处理
 
 #### 基于消息中间件特性实现延迟队列
 
+- RabbitMQ死信队列模式：
+> 发送消息时设置消息TTL，针对该topic不设置消费者，当消息超时后，会进入到死信队列
+>
+> 新建exchange绑定死信队列，并新增添加Consumer，消费后处理订单关闭
+>
+> 问题：如果只设置一个队列接受TTL消息，第一个消息10min后超时，第二个消息1min后超时，那么第二条消息也会在10min后被处理；
+>
+> 解决方案：根据RabbitMQ的架构特点，技术基于镜像模式做高可用，每个节点的queue数据也是一致的；我们要为不同的延时时间，建立多个Queue
+
+- RocketMQ延迟队列模式：
+> 发送消息时，设置消息的delayTimeLevel级别，消息推送到Broker之后，会暂存在`SCHEDULE_TOPIC_实际Topic名称`这个Topic中
+>
+> 开源版支持`1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h`，足够一般业务场景使用
+>
+> Broker创建一个Timer，来执行不同级别的延时任务，读取`SCHEDULE_TOPIC_`的消息，将到期的Message推送到实际的`Topic`中，一直读取到当前queue中某一个offset位置的消息还没超时（单个queue中的消息是有序的）
+>
+> 问题：`java.util.Timer`其实只起了一个线程，然后处理queue中的的定时任务，当队列中有大量延迟消息时，性能相对较差
+>
+> 解决方案：修改源码，使用时间轮调度，每一个延时级别单独起一个线程处理，但是要处理Broker重启时，时间轮指针位置与圈数的问题
+
 #### 基于时间轮实现延迟队列
+
 
 **参考：**
 > 订单超时自动关闭的实现方案总结: https://www.extutorial.com/blog/1543096
@@ -40,6 +61,8 @@
 > 有赞延迟队列设计: https://tech.youzan.com/queuing_delay/
 >
 > 揭秘：达达-京东到家订单派发的技术实战: https://www.sohu.com/a/251506542_168370
+>
+> RocketMQ 延迟消息的使用与分析: https://blog.csdn.net/silence1144/article/details/109902684
 
 ----
 
