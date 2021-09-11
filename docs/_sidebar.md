@@ -21,7 +21,6 @@
 
     * [RPC](middleware/rpc.md)
     * [消息队列](middleware/mq.md)
-    * [配置中心与注册中心]
 
 * 技术架构
 
