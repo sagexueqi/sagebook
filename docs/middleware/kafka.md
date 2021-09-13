@@ -92,9 +92,27 @@ Broker 端对 Producer 每批发送过来的消息也有一定的大小限制。
 
 默认值：`1M`
 
-- 
+- **replica.fetch.max.bytes**
+
+Broker可复制的最大字节数。要大于`message.max.bytes`的配置，否则Master节点可以接受消息，但是无法复制到Replication节点，从而造成数据丢失。
+
+- **log.retention.hours/log.retention.minutes/log.retention.ms**
+
+消息保存时长。个参数可以同时设置，kafka会优先使用最小值的参数，kafka默认log.retention.hours=168， topic具有相同的参数，会覆盖调broker配置。
 
 ### 生产者参数
+
+- **acks**
+
+broker的确认数，通常有`0、1、all`三种常见配置。
+
+0：生产者完全不等待Broker的响应，记录添加到Producer缓冲区后就视为发送成功。这种配置，生产者吞吐量最高，但是不能保证消息被成功投递；适合非重要消息、oneway消息；
+
+1：生产者同步等待Broker主节点已经成功确认消息，即视为发送成功。不会等待Replication节点的同步结果。这种配置最平衡，只要主节点刷盘成功，消息就不会丢失；只有主节点没有刷盘，同时也没有同步到Replication节点，宕机恢复后，消息会丢失；
+
+all：表示领导者和跟随者都确认成功，才视为已发送。效率是三者里面最低的。如果要确保不丢消息就要设置为all
+
+- **buffer.memory**
 
 ### 消费者参数
 
