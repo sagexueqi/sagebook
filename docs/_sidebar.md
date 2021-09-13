@@ -12,15 +12,12 @@
     * [NIO](java/nio.md)
     * [Spring](java/spring.md)
 
-* 数据库与缓存
-
-    * [MySQL](db_cache/mysql.md)
-    * [Redis](db_cache/redis.md)
-
 * 中间件
 
     * [RPC](middleware/rpc.md)
-    * [消息队列](middleware/mq.md)
+    * [Kafka](middleware/kafka.md)
+    * [MySQL](middleware/mysql.md)
+    * [Redis](middleware/redis.md)
 
 * 技术架构
 
