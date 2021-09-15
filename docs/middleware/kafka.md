@@ -264,17 +264,126 @@ StickyAssignor（粘性）：粘性的分区分配策略。该策略会尽可能
 
 ## 编码范式
 
+### 消息生产者
+
+```java
+public class Producer {
+	private static KafkaProducer<String, String> producer;
+
+	private Producer() {
+	}
+
+	private static class InnerKafkaProducer {
+		private static final Producer INSTANCE = new Producer();
+	}
+
+	/**
+	 * 获取单例的Producer
+	 *
+	 * @return
+	 */
+	public static Producer getInstance() {
+		producer = new KafkaProducer<>(producerConfigs());
+		return InnerKafkaProducer.INSTANCE;
+	}
+
+	private static Map<String, Object> producerConfigs() {
+		Map<String, Object> props = new HashMap<>();
+		// SERVER 地址，从环境变量：KAFKA_BOOTSTRAP_SERVERS 中获取
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getenv("KAFKA_BOOTSTRAP_SERVERS"));
+		// retries 重试次数配置：0表示不配置，默认 Integer.MAX_VALUE = 2147483647，如果消息必须尽最大努力要送达，建议不配置
+		props.put(ProducerConfig.RETRIES_CONFIG, 10);
+		// batch.size 批次大小：当消息发送到相同的Partition时，是会被打包成一批发送的，默认16K；如果希望消息尽快被发送，可以调整小一些，我们生产配置10K
+		props.put(ProducerConfig.BATCH_SIZE_CONFIG, 10240);
+		// linger.ms 批处理延迟时间：同一个Partition缓冲区发送消息间隔，一般配置10ms，太久了消息延迟太大
+		props.put(ProducerConfig.LINGER_MS_CONFIG, 10);
+		// buffer.memory 生产者本地缓冲区大小：默认30M，一般配置64M
+		props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 67108864);
+		// acks 消息投递确认配置：0-会丢消息 all-吞吐太低 1-较为均衡，master确认接收即可
+		props.put(ProducerConfig.ACKS_CONFIG, "1");
+		// key.serializer key序列化方式：我们一般使用kafka提供的StringSerializer足以
+		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+		// value.serializer value序列化方式：我们一般使用kafka提供的StringSerializer足以
+		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+
+		return props;
+	}
+
+	/**
+	 * 获取KafkaProducer
+	 *
+	 * @return
+	 */
+	public KafkaProducer<String, String> producer() {
+		return Producer.producer;
+	}
+
+	public static void main(String[] args) throws Exception {
+		// Producer是线程安全的，多个线程可以共享一个实例
+		KafkaProducer<String, String> kafkaProducer = Producer
+				.getInstance()
+				.producer();
+
+		// 发送消息：直接异步发送，不管结果，有些异常无法捕获 oneway方式
+		kafkaProducer.send(
+				new ProducerRecord<>("topic_hb_hp_tester", "hello-world!")
+		);
+
+		// 发送消息：同步发送，等待发送结果
+		try {
+			RecordMetadata recordMetadata = kafkaProducer.send(
+					new ProducerRecord<>("topic_hb_hp_tester", "test-key", "sync-hello-world!")
+			).get();
+
+			System.out.println("----同步发送----");
+			System.out.println("topic:" + recordMetadata.topic());
+			System.out.println("partition:" + recordMetadata.partition());
+			System.out.println("offset:" + recordMetadata.offset());
+		} catch (Exception e) {
+			// log error
+			e.printStackTrace();
+		}
+
+		// 发送消息：异步发送，执行回调函数
+		kafkaProducer.send(
+				new ProducerRecord<>("topic_hb_hp_tester", "test-key", "callback-hello-world"),
+				(metadata, exception) -> {
+					System.out.println("----异步发送----");
+					System.out.println("topic:" + metadata.topic());
+					System.out.println("partition:" + metadata.partition());
+					System.out.println("offset:" + metadata.offset());
+					System.out.println("exception:" + exception);
+				}
+		);
+
+		// 应用结束前，要close掉producer
+		kafkaProducer.close();
+
+		// 为了演示回调，sleep
+		Thread.sleep(10000L);
+	}
+}
+```
+
+### 消息消费者
+
 ----
 
-### 生产使用经验
+## 实际应用
 
-#### 容量规划
+### 容量规划
 
-#### 问题排查
+### 高可用性
 
-#### 高可用性
+----
 
-#### 丢消息与重复投递
+## 问题排查
+
+### 丢消息与重复投递
+
+----
+
+## 技术选型对比
 
 **参考：**
 > Kafka中文文档：https://kafka.apachecn.org/
