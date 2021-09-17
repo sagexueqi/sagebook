@@ -86,27 +86,27 @@ Kafka的服务器端是由被称为Broker的进程组成，一个Kafka集群是�
 
 ### Broker参数
 
-- **auto.create.topics.enable**
+#### auto.create.topics.enable
 
 是否允许自动创建 Topic。开发测试环境允许自动创建，生产环境应该由运维根据工单操作。
 
-- **message.max.bytes**
+#### message.max.bytes
 
 Broker 端对 Producer 每批发送过来的消息也有一定的大小限制。
 
 默认值：`1M`
 
-- **replica.fetch.max.bytes**
+#### replica.fetch.max.bytes
 
 Broker可复制的最大字节数。要大于`message.max.bytes`的配置，否则Master节点可以接受消息，但是无法复制到Replication节点，从而造成数据丢失。
 
-- **log.retention.hours/log.retention.minutes/log.retention.ms**
+#### log.retention.hours/log.retention.minutes/log.retention.ms
 
 消息保存时长。个参数可以同时设置，kafka会优先使用最小值的参数，kafka默认log.retention.hours=168， topic具有相同的参数，会覆盖调broker配置。
 
 ### 生产者参数
 
-- **acks**
+#### acks
 
 broker的确认数，通常有`0、1、all`三种常见配置。
 
@@ -116,7 +116,7 @@ broker的确认数，通常有`0、1、all`三种常见配置。
 
 all：表示领导者和跟随者都确认成功，才视为已发送。效率是三者里面最低的。如果要确保不丢消息就要设置为all
 
-- **buffer.memory**
+#### buffer.memory
 
 指定Producer本地内存缓冲区大小。KafKa使用异步发送的消息架构，Producer在启动时会划分一块内存区域缓冲保存待发送的消息，然后由专属线程负责从缓冲区真正读取消息然后发送到Broker。
 
@@ -126,13 +126,13 @@ all：表示领导者和跟随者都确认成功，才视为已发送。效率�
 
 如果说，我们的消息生产者经常报`TimeoutException`异常时，是需要考虑调大`buffer.memory`的配置；由于Producer是线程安全的，多线程共享kafka producer时，很容易把 buffer.memory 打满。
 
-- **max.block.ms**
+#### max.block.ms
 
 消息发送阻塞时间。如果消息发送过快导致buffer区被打满，此时Producer会被阻塞，如果超过了`max.block.ms`配置的时间，会抛出`TimeoutException`异常
 
 默认值：`60000`
 
-- **compression.type**
+#### compression.type
 
 消息压缩类型。有效值为`none、gzip、snappy、lz4或zstd`。Broker会适配压缩配置，压缩的目的在于缩减带宽，但是会降低性能
 
@@ -140,13 +140,13 @@ all：表示领导者和跟随者都确认成功，才视为已发送。效率�
 
 默认值：`none`
 
-- **retries**
+#### retries
 
 重试次数。失败后自动重试的次数，一直重试到配置值或broker返回ack
 
 默认值：`Integer.MAX_VALUE`
 
-- **batch.size**
+#### batch.size
 
 批次大小。当消息发送到相同的Partition时，是会被打包成一批发送的，这样可以减少网络交互的开销；
 
@@ -156,7 +156,7 @@ all：表示领导者和跟随者都确认成功，才视为已发送。效率�
 
 一般和`linger.ms`搭配使用
 
-- **linger.ms**
+#### linger.ms
 
 批处理延迟时间。很多应用不会频繁大量生成消息，可能需要缓冲区发送到同一个分区的消息才能凑够`batch.size`配置的大小，如果只是简单等到batch.size大小再发送消息，可能很多系统永远都没办法发出消息了；
 
@@ -172,7 +172,7 @@ Consumer一次从Broker中拉取消息的最大数据量。
 
 默认值：`50M`
 
-- **max.partition.fetch.bytes**
+#### max.partition.fetch.bytes
 
 Consumer一次拉取中，每一个`partition`的最大数据量。
 
@@ -180,23 +180,23 @@ Consumer一次拉取中，每一个`partition`的最大数据量。
 
 这个参数和`fetch.max.bytes`的区别在于，`fetch.max.bytes`关注一次拉取的所有分区数据量大小之和，而`max.partition.fetch.bytes`关注的是每一个分区的数据量大小
 
-- **fetch.min.bytes**
+#### fetch.min.bytes
 
 每次拉取的最小字节数。如果Broker可用的数据量小于 fetch.min.bytes 指定的大小，那么它会等到有足够的可用数据时才把它返回给消费者。这样可以降低消费者和 broker 的工作负载。
 
 和`fetch.max.wait.ms`搭配使用，一般不用配置。
 
-- **fetch.max.wait.ms**
+#### fetch.max.wait.ms
 
 从Broker拉取消息的最大等待时间。同时设置`fetch.min.bytes`和`fetch.max.wait.ms`,哪个条件先满足就都会拉取消息。
 
 默认值：`500`，一般来说无需配置
 
-- **group.id**
+#### group.id
 
 消费者组名称。多个消费者实例共同组成的一个组，同时消费多个分区以实现高吞吐。
 
-- **heartbeat.interval.ms**
+#### heartbeat.interval.ms
 
 心跳间隔。与`session.timeout.ms`配合使用
 
@@ -206,13 +206,13 @@ heartbeat线程每隔`heartbeat.interval.ms`时间向`broker-coordinator`发送�
 
 默认值：`3000`
 
-- **session.timeout.ms**
+#### session.timeout.ms
 
 会话超时时间。与`heartbeat.interval.ms`配合使用
 
 默认值：`3000`
 
-- **auto.offset.reset**
+#### auto.offset.reset
 
 当Kafka中不存在当前偏移量时的处理逻辑。
 
@@ -220,7 +220,7 @@ heartbeat线程每隔`heartbeat.interval.ms`时间向`broker-coordinator`发送�
 
 默认值：`latest`
 
-- **enable.auto.commit**
+#### enable.auto.commit
 
 是否开启自动提交。如果开启自动提交，会根据`auto.commit.interval.ms`配置的时间间隔，自动提交当前的offset。
 
@@ -228,13 +228,13 @@ heartbeat线程每隔`heartbeat.interval.ms`时间向`broker-coordinator`发送�
 
 默认值：`true`
 
-- **auto.commit.interval.ms**
+#### auto.commit.interval.ms
 
 自动提交时间间隔。与`enable.auto.commit`配合使用，根据配置的时间间隔，提交当前消费的offset
 
 默认值：`5000`
 
-- **max.poll.records 和 max.poll.interval.ms**
+#### max.poll.records 和 max.poll.interval.ms
 
 max.poll.records：单次消费者拉取的最大数据条数
 
@@ -250,7 +250,7 @@ max.poll.interval.ms：最大拉取时间间隔
 >
 > 不间断发起poll操作的过程，client没有为我们提供实现，需要在应用中自己编码完成
 
-- **partition.assignment.strategy**
+#### partition.assignment.strategy
 
 分区策略。
 
@@ -366,6 +366,286 @@ public class Producer {
 ```
 
 ### 消息消费者
+```java
+public class Consumer {
+	private static final String TOPIC_OFFSET_TMP_PATH = "/Users/xueqi/Development/logs/";
+
+	/**
+	 * Consumer执行线程池. Kafka线程只负责poll消息，消息的处理均在工作线程执行
+	 */
+	private ThreadPoolExecutor            consumerExecutePool;
+	/**
+	 * kafka consumer实例
+	 */
+	private KafkaConsumer<String, String> kafkaConsumer;
+	/**
+	 * 保存各TopicPartition消费到的进度offset
+	 */
+	private Map<String, Long>             offsetMap = new ConcurrentHashMap<>();
+	/**
+	 * 消费者topic
+	 */
+	private String                        topic;
+	/**
+	 * 消费者组
+	 */
+	private String                        groupName;
+
+	private Consumer() {
+	}
+
+	/**
+	 * 创建Consumer
+	 *
+	 * @param topic
+	 * @param groupName
+	 */
+	public Consumer(String topic, String groupName) {
+		this.topic = topic;
+		this.groupName = groupName;
+		init();
+	}
+
+	private void init() {
+		// 初始化线程池: 只有1个线程维持Consumer工作,以保证线程安全
+		consumerExecutePool = new ThreadPoolExecutor(1, 1, 0L,
+				TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
+				new ThreadFactoryBuilder().setNameFormat("kafka-consumer-%d").build()
+		);
+
+		// 拉取消息工作
+		consumerExecutePool.submit(this::pollMessage);
+	}
+
+	public void detory() {
+		if (consumerExecutePool != null) {
+			consumerExecutePool.shutdown();
+		}
+		if (kafkaConsumer != null) {
+			kafkaConsumer.close();
+		}
+	}
+
+	/**
+	 * 定时备份offset
+	 */
+	public void backupOffset() {
+		for (String topicPartitionKey : offsetMap.keySet()) {
+			storeOffset(topicPartitionKey);
+		}
+	}
+
+	/**
+	 * 创建消费者实例
+	 *
+	 * @param groupName
+	 */
+	private void createConsumer(String groupName) {
+		Properties props = new Properties();
+		// SERVER 地址，从环境变量：KAFKA_BOOTSTRAP_SERVERS 中获取
+		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getenv("KAFKA_BOOTSTRAP_SERVERS"));
+		// 消费者所属消费者组：一个应用中可以有多个消费者组，如果消费同一个topic的话，每一个节点都可以消费所有分区的消息
+		props.put(ConsumerConfig.GROUP_ID_CONFIG, groupName);
+		// 是否开启自动提交：不开启，由消费者自行维护offset
+		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+		// 自动提交时间间隔：如果没开启自动提交，无需配置；如果配置自动提交，建议配置100ms，尽快提交offset
+		props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 100);
+		// 会话超时时间: 与心跳超时时间配合，在会话超时时间内没有收到心跳，会触发rebalance
+		props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 6000);
+		// 心跳时间，要小于回话超时时间；但是也不要设置的过于频繁
+		props.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 2000);
+		// Consumer一次拉取中，每一个partition的最大数据量
+		props.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, String.valueOf(1024 * 1024 * 5));
+		// Consumer一次从Broker中拉取消息的最大数据量,一般来说一个Consumer消费一个Partition，两者一致是可以的
+		props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, String.valueOf(1024 * 1024 * 15));
+		// 最大拉取时间间隔,如果两次拉取超过该时间，会触发rebalance：不要太短；同时poll的主逻辑不要太耗时
+		props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000);
+		// 一次poll调用返回的最大记录数: 根据消息大小规划，不要过多，会导致遍历处理时间过久，超时会rebalance
+		props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
+		// 当Kafka中不存在当前偏移量时的处理逻辑
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		// 分区分配策略
+		props.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, "org.apache.kafka.clients.consumer.RoundRobinAssignor");
+		// 消息key反序列化策略
+		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+		// 消息value反序列化策略
+		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+
+		this.kafkaConsumer = new KafkaConsumer<>(props);
+	}
+
+	/**
+	 * 消费者订阅topic
+	 *
+	 * @param topic
+	 */
+	private void subscribeTopic(String topic) {
+		Pattern pattern = Pattern.compile(topic);
+
+		// 消费者订阅指定topic，并传入处理offset的逻辑
+		this.kafkaConsumer.subscribe(pattern, new ConsumerRebalanceListener() {
+
+			/**
+			 * 当kafka-manager将partition从当前consumer调度走 - 更新当前partition的订阅进度
+			 *
+			 * @param partitions
+			 */
+			@Override
+			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+				// 以写入文件为例，实际环境可以写入到redis或db中
+				for (TopicPartition partition : partitions) {
+					storeOffset(topicPartitionKey(partition.topic(), partition.partition()));
+				}
+			}
+
+			/**
+			 * 当kafka-manager将新partition调度到当前consumer - 获取新partition的起始订阅位置
+			 *
+			 * @param partitions
+			 */
+			@Override
+			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+				// 以从文件中读取为例，实际环境可以从redis或db中读取
+				for (TopicPartition partition : partitions) {
+					restoreOffset(partition);
+				}
+			}
+		});
+	}
+
+	/**
+	 * 拉取消息
+	 */
+	private void pollMessage() {
+		// 创建消费者实例
+		createConsumer(groupName);
+
+		// 订阅Topic
+		subscribeTopic(topic);
+
+		// 只要当前线程没有被中断，就持续拉取消息
+		while (!Thread.currentThread().isInterrupted()) {
+			// 要预估好超时时间，不能大于拉取超时时间，否则有可能触发Rebalance
+			ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(50));
+			if (records.isEmpty()) {
+				continue;
+			}
+
+			try {
+				// 持久化消息
+				persistenceMessage(records);
+
+				// 记录当前offset的位置,由于Consumer是单线程拉取，可以安全操作map
+				records.forEach(record -> {
+					String topicPartitionKey = topicPartitionKey(record.topic(), record.partition());
+					Long   lastOffset        = offsetMap.computeIfAbsent(topicPartitionKey, key -> 0L);
+					if (record.offset() > lastOffset) {
+						offsetMap.put(topicPartitionKey, record.offset());
+					}
+				});
+
+				// 最后处理消息
+				dealMessage(records);
+			} catch (Exception e) {
+				// 处理异常不应该让整个拉取停止
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 持久化消息，这样在本地可以被追溯或重试,避免消息积压
+	 *
+	 * @param records
+	 */
+	private void persistenceMessage(ConsumerRecords<String, String> records) {
+		for (ConsumerRecord<String, String> record : records) {
+			System.out.println(String.format(
+					"topic:%s,partition:%s,offset:%s => message:%s",
+					record.topic(), record.partition(), record.offset(), record.value()
+			));
+		}
+	}
+
+	/**
+	 * 处理消息，如果逻辑耗时较长，可以再提交到一个工作线程池中完成
+	 *
+	 * @param records
+	 */
+	private void dealMessage(ConsumerRecords<String, String> records) {
+		// do something
+		records.count();
+	}
+
+	/**
+	 * 备份offset
+	 *
+	 * @param backKey
+	 */
+	private void storeOffset(String backKey) {
+		try {
+			// 实际消费的offset要以本地cache的为准，因为offset是不自动commit的
+			File topicPartitionOffsetFile = new File(TOPIC_OFFSET_TMP_PATH + backKey + "-offset.txt");
+			if (offsetMap.containsKey(backKey)) {
+				long offset = offsetMap.get(backKey);
+
+				Files.write(String.valueOf(offset).getBytes(), topicPartitionOffsetFile);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 恢复offset
+	 *
+	 * @param partition
+	 */
+	private void restoreOffset(TopicPartition partition) {
+		String backKey                  = topicPartitionKey(partition.topic(), partition.partition());
+		File   topicPartitionOffsetFile = new File(TOPIC_OFFSET_TMP_PATH + backKey + "-offset.txt");
+
+
+		try {
+			// 如果有备份文件，再设置seek
+			if (topicPartitionOffsetFile.exists()) {
+				long offset = Long.parseLong(Files.readFirstLine(topicPartitionOffsetFile, Charset.defaultCharset()));
+
+				// 设置Consumer的offset
+				System.out.println("thread: " + Thread.currentThread().getName() + ", consumer partition:" + partition + ", restoreOffset:" + offset);
+
+				// 实际要指向的position = offset + 1
+				long position = offset + 1;
+				kafkaConsumer.seek(partition, position);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 组装topic partition key
+	 *
+	 * @param topic
+	 * @param partition
+	 * @return
+	 */
+	private String topicPartitionKey(String topic, int partition) {
+		return topic + "-" + partition;
+	}
+
+	public static void main(String[] args) {
+		// 创建一个Consumer，如果需要一个节点消费多个partition，可以创建多个Consumer并指定不同的group名称并加入到线程池中
+		Consumer consumer = new Consumer("topic_hb_hp_tester_3", "common-topic-group_topic_hb_hp_tester");
+
+		// 模拟定时写入offset备份
+		// debug: consumer.backupOffset();
+
+		// 关闭Consumer
+		// debug: consumer.destory();
+	}
+}
+```
 
 ----
 
