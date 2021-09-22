@@ -659,7 +659,7 @@ public class Consumer {
 
 ----
 
-## 生产应用
+## 生产运维
 
 ### 容量规划
 
@@ -693,28 +693,43 @@ public class Consumer {
  
 ### 高可用
 
-### 问
+#### Replica副本机制
 
-#### 1. 消费者fetch.max.bytes参数设置不合理导致应用OOM，启动失败
+所谓副本（Replica），本质就是一个只能追加写消息的提交日志。根据 Kafka 副本机制的定义，同一个分区下的所有副本保存有相同的消息序列，这些副本分散保存在不同的 Broker 上，从而能够对抗部分 Broker 宕机带来的数据不可用。
 
-**问题表现**
+- Replica是保存在各个Broker上的，并不是有单独的服务节点；副本数建议小于等于Broker数量，以保证每个Broker节点至少有一个对应的副本
+- Topic的一个Partition有1个`Leader Replica - 领导者副本`用以接收处理客户端请求；0-N个`Follower Replica - 跟随者副本`用以同步领导者副本数据
+- 当Producer向Topic Partition写入消息时，当`ack=1`时只会向Leader Replica中写入数据，然后Leader Replica中的数据会复制到其他的Follower Replica中；Follower Replica会周期性的从Leader Replica中拉取数据
+- 当Leader Replica挂掉后，会从Follower中选举出新的Leader并对外提供服务
+
+**参考:**
+
+> Kafka——副本（Replica）机制：https://www.cnblogs.com/caoweixiong/p/12049462.html
+
+----
+
+## 生产问题回顾
+
+### 1. 消费者fetch.max.bytes参数设置不合理导致应用OOM，启动失败
+
+#### 问题表现
 - 应用启动过程中，频现OOM日志，导致启动失败
 - 首先尝试横向扩容，即增加消费者应用节点数，实例逐台启动的过程中，始终OOM无法启动
 - 尝试纵向扩容，即增加单台容器的CPU核数和内存大小，应用顺利启动
 
-**原因分析**
+#### 原因分析
 - 纵向扩容成功，说明当前应用有内存泄露的问题；而该应用主要是作为消费者处理业务，初步已经怀疑是不是消费了大量数据；但此时仍然认为是成功消费后，代码处理逻辑有问题
 - 检查topic当前logSize和应用的offset备份，发现已经有大量的消息积压；初步预估每个partition积压的消息在1G左右（200w消息）
 - 应用内启动了5个消费者线程，实例逐台启动时，kafka会将partition全部assign到这一台实例
 - 消费者`fetch.max.bytes`和`max.partition.fetch.bytes`配置为1G，此时实例启动后，5个消费者各拉了1个G的数据到Consumer的缓冲区，导致JVM内存溢出，应用启动失败
 
-**解决方案**
+#### 解决方案
 - 由于该Topic存放订单信息，各个实例内部要进行留存为后续内存撮合处理做准备，所以每个节点是独立消费者组，消费5个Partition的数据这个不能变
 - 将`fetch.max.bytes`和`max.partition.fetch.bytes`默认值，保证应用可以正常启动，由于节点内都是内存操作速度较快（不是所有消息都会被缓存在内存中的），可以快速消费积压消息
 
-#### 2. 消费者服务频发rebalance，导致消费者集群处理能力下降
+### 2. 消费者服务频发rebalance，导致消费者集群处理能力下降
 
-#### 3. 超大消息导致消费者节点CPU飙升
+### 3. 超大消息导致消费者节点CPU飙升
 
 ----
 
