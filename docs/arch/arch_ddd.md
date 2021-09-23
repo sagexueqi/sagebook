@@ -104,3 +104,6 @@
 > 领域驱动设计实践: http://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5%EF%BC%88%E5%AE%8C%EF%BC%89
 >
 > 阿里技术专家详解DDD系列第四讲：领域层设计规范: https://mp.weixin.qq.com/s/NoRTUSovcO2Yz237k0ceIw#at
+>
+> DDD实施过程中的点滴思考: https://zhuanlan.zhihu.com/p/65948474
+
