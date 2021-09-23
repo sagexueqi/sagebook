@@ -106,4 +106,6 @@
 > 阿里技术专家详解DDD系列第四讲：领域层设计规范: https://mp.weixin.qq.com/s/NoRTUSovcO2Yz237k0ceIw#at
 >
 > DDD实施过程中的点滴思考: https://zhuanlan.zhihu.com/p/65948474
+>
+> 使用DDD指导业务设计的一点思考: https://insights.thoughtworks.cn/ddd-business-design/
 
