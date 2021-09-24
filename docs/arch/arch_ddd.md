@@ -108,4 +108,5 @@
 > DDD实施过程中的点滴思考: https://zhuanlan.zhihu.com/p/65948474
 >
 > 使用DDD指导业务设计的一点思考: https://insights.thoughtworks.cn/ddd-business-design/
-
+>
+> 浅谈我对DDD领域驱动设计的理解: https://www.cnblogs.com/netfocus/p/5548025.html
