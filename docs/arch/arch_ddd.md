@@ -110,3 +110,7 @@
 > 使用DDD指导业务设计的一点思考: https://insights.thoughtworks.cn/ddd-business-design/
 >
 > 浅谈我对DDD领域驱动设计的理解: https://www.cnblogs.com/netfocus/p/5548025.html
+>
+> DDD理论学习系列——案例及目录: https://www.jianshu.com/p/6e2917551e63
+>
+> 领域驱动设计DDD和CQRS落地: https://www.jianshu.com/p/Tozpp3
