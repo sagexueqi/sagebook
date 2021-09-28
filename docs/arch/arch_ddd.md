@@ -114,3 +114,5 @@
 > DDD理论学习系列——案例及目录: https://www.jianshu.com/p/6e2917551e63
 >
 > 领域驱动设计DDD和CQRS落地: https://www.jianshu.com/p/Tozpp3
+>
+> 新项目从零到一DDD实战思考与总结: https://developer.51cto.com/art/202106/668962.htm
