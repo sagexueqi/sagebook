@@ -20,6 +20,14 @@
 
 ## 战略设计与战术设计
 
+### 战术设计
+#### 聚合、聚合根、实体、值对象的关系
+
+- **聚合(Aggregate)：** 逻辑概念，在代码组织层面是一个包。聚合中是包含了聚合根和所属一个范围边界的，实体、值对象的集合。通过聚合根实体，可以导航到聚合
+- **实体(Entity)：** 实体是有唯一主键的，有生命周期、有状态、有动作，实体可以通过ID来区分两个不同的实体
+- **聚合根(Aggregate Root)：** 聚合根是一个特殊的Entity，它是一个聚合的入口和标示；不同的aggregateId标示不同的聚合对象，聚合根要全局唯一；聚合根内的Entity的Id，在聚合根内唯一即可
+- **值对象(Value Object)：** 值对象的核心是`值`，没有生命周期，附着于实体和聚合根；它只有简单的动作（创建的校验这样的）；只要两个值对象的所有字段是相等的，那么就是同一个值对象
+
 ----
 
 ## 架构风格
@@ -35,6 +43,7 @@
 - Repository资源库、DomainEvent领域事件：
   - 都应该为抽象的接口，在Infrastructure层完成实现
   - Repository的实现可能是Mybatis、Redis、JdbcTemplate等；领域事件的发布，可能是本地Message Event Bus、RocketMQ、KafKa；而这些不是领域层关心的事情
+  - Repository操作的应该是聚合(Aggregate)，不应该是Entity
 - DomainService领域事件：
   - 如果一个业务逻辑涉及到一个聚合的多个实体动作协调完成时，逻辑应该抽象到领域服务中(例如转账)
   - 类似生成序列号这样的逻辑，虽然是某一个聚合的动作，但是又与业务逻辑不是那么的强相关，抽象成独立的领域服务
@@ -116,3 +125,5 @@
 > 领域驱动设计DDD和CQRS落地: https://www.jianshu.com/p/Tozpp3
 >
 > 新项目从零到一DDD实战思考与总结: https://developer.51cto.com/art/202106/668962.htm
+>
+> DDD实战,领域驱动设计: https://www.processon.com/view/5e55d17ee4b069f82a120d06
