@@ -45,7 +45,7 @@
   - Repository的实现可能是Mybatis、Redis、JdbcTemplate等；领域事件的发布，可能是本地Message Event Bus、RocketMQ、KafKa；而这些不是领域层关心的事情
   - Repository操作的应该是聚合(Aggregate)，不应该是Entity
 - DomainService领域事件：
-  - 如果一个业务逻辑涉及到一个聚合的多个实体动作协调完成时，逻辑应该抽象到领域服务中(例如转账)
+  - 如果一个业务逻辑涉及到一个聚合的多个实体动作协调完成时，逻辑应该抽象到领域服务中(例如转账)，或者说是协调两个同聚合类型完成业务动作的
   - 类似生成序列号这样的逻辑，虽然是某一个聚合的动作，但是又与业务逻辑不是那么的强相关，抽象成独立的领域服务
   - 领域事件的命名可以是动作名称，例如：TransferDomainService；也可以是某一个聚合的领域服务，例如：AccountingVoucherDomainService
 
@@ -90,6 +90,7 @@
 ### CQRS模式
 
 **定义：** Command Query Responsibility Segregation（命令查询的职责分离）
+
 - 在DDD的架构风格中，将命令动作与查询动作分离的一种模式。CQRS已经超过了DDD的范畴，它属于如何使用DDD的一种策略
 - 使用CQRS的目的在于，解决纯查询类的逻辑，通过`domain model`的方式会非常复杂的问题；将指令类动作和查询类动作分离
 - 作用在Application应用服务层
@@ -106,6 +107,11 @@
 **注意点：**
 - `CommandService`和`QueryService` 不要互相调用
 - `QueryService`不要有业务逻辑，纯查询
+
+#### 思考
+
+- Query作用在应用层，是一个独立的Service
+- 应该在应用层的Adaptor中单独为query的接口做适配，然后在infra中实现查询逻辑（这样避免破坏DIP原则，不需要application依赖infra中的dao）；同时，在infra中可以根据不同的技术实现完成查询（MyBatis查询数据库、Cache查询、ES查询等）
 
 **参考：**
 > ddd的战术篇: CQRS: https://blog.csdn.net/abchywabc/article/details/80879514
