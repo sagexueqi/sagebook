@@ -137,5 +137,7 @@
 > 新项目从零到一DDD实战思考与总结: https://developer.51cto.com/art/202106/668962.htm
 >
 > DDD实战,领域驱动设计: https://www.processon.com/view/5e55d17ee4b069f82a120d06
+>
+> DDD模式：https://www.cnblogs.com/for-easy-fast/p/13041087.html
 
 -- 数据和动作分离；技术和业务分离
