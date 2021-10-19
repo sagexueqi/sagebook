@@ -26,6 +26,9 @@ DDD与微服务的关系是相辅相成的，DDD更多的是业务架构设计�
 #### 聚合、聚合根、实体、值对象的关系
 
 - **聚合(Aggregate)：** 逻辑概念，在代码组织层面是一个包。聚合中是包含了聚合根和所属一个范围边界的，实体、值对象的集合。通过聚合根实体，可以导航到聚合
+
+> 聚合体现的是一种整体与部分的关系。正是因为有这样的关系，在操作整体的时候，整体就封装了对部分的操作。但并非所有对象间的关系都有整体与部分的关系，而那些不是整体与部分的关系是不能设计成聚合的。因此，正确地识别聚合关系就变得尤为重要。
+
 - **实体(Entity)：** 实体是有唯一主键的，有生命周期、有状态、有动作，实体可以通过ID来区分两个不同的实体
 - **聚合根(Aggregate Root)：** 聚合根是一个特殊的Entity，它是一个聚合的入口和标示；不同的aggregateId标示不同的聚合对象，聚合根要全局唯一；聚合根内的Entity的Id，在聚合根内唯一即可
 - **值对象(Value Object)：** 值对象的核心是`值`，没有生命周期，附着于实体和聚合根；它只有简单的动作（创建的校验这样的）；只要两个值对象的所有字段是相等的，那么就是同一个值对象
@@ -120,28 +123,34 @@ DDD与微服务的关系是相辅相成的，DDD更多的是业务架构设计�
 - 应该在应用层的Adaptor中单独为query的接口做适配，然后在infra中实现查询逻辑（这样避免破坏DIP原则，不需要application依赖infra中的dao）；同时，在infra中可以根据不同的技术实现完成查询（MyBatis查询数据库、Cache查询、ES查询等）
 
 **参考：**
-> ddd的战术篇: CQRS: https://blog.csdn.net/abchywabc/article/details/80879514
+
+- 实践系列:
+> Thoughtworks-后端开发实践系列——领域驱动设计(DDD)编码实践: https://zhuanlan.zhihu.com/p/75931257
 >
+> 新项目从零到一DDD实战思考与总结: https://developer.51cto.com/art/202106/668962.htm
+
+- 理论系列:
+> DDD 模式从天书到实践: https://zhuanlan.zhihu.com/p/91525839
+>
+> DDD理论学习系列——案例及目录: https://www.jianshu.com/p/6e2917551e63
+>
+> 一文带你落地DDD: https://juejin.cn/post/7004002483601145863
+
+- 思考系列:
+> Thoughtworks-使用DDD指导业务设计的一点思考: https://insights.thoughtworks.cn/ddd-business-design/
+>
+> Thoughtworks-DDD实施过程中的点滴思考: https://zhuanlan.zhihu.com/p/65948474
+>
+> 汤雪华-浅谈我对DDD领域驱动设计的理解: https://www.cnblogs.com/netfocus/p/5548025.html
+>
+> 思维导图-DDD实战,领域驱动设计: https://www.processon.com/view/5e55d17ee4b069f82a120d06
+
+- 教程系列:
 > 领域驱动设计实践: http://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5%EF%BC%88%E5%AE%8C%EF%BC%89
 >
 > 阿里技术专家详解DDD系列第四讲：领域层设计规范: https://mp.weixin.qq.com/s/NoRTUSovcO2Yz237k0ceIw#at
 >
-> DDD实施过程中的点滴思考: https://zhuanlan.zhihu.com/p/65948474
->
-> 使用DDD指导业务设计的一点思考: https://insights.thoughtworks.cn/ddd-business-design/
->
-> 浅谈我对DDD领域驱动设计的理解: https://www.cnblogs.com/netfocus/p/5548025.html
->
-> DDD理论学习系列——案例及目录: https://www.jianshu.com/p/6e2917551e63
->
-> 领域驱动设计DDD和CQRS落地: https://www.jianshu.com/p/Tozpp3
->
-> 新项目从零到一DDD实战思考与总结: https://developer.51cto.com/art/202106/668962.htm
->
-> DDD实战,领域驱动设计: https://www.processon.com/view/5e55d17ee4b069f82a120d06
->
-> DDD模式：https://www.cnblogs.com/for-easy-fast/p/13041087.html
->
-> DDD 模式从天书到实践: https://zhuanlan.zhihu.com/p/91525839
+> 基于 DDD 的微服务设计实例代码详解: https://zq99299.github.io/note-book2/ddd/04/01.html#%E9%A1%B9%E7%9B%AE%E5%9B%9E%E9%A1%BE
+
 
 -- 数据和动作分离；技术和业务分离
