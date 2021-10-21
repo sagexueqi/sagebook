@@ -144,6 +144,8 @@ DDD与微服务的关系是相辅相成的，DDD更多的是业务架构设计�
 > 汤雪华-浅谈我对DDD领域驱动设计的理解: https://www.cnblogs.com/netfocus/p/5548025.html
 >
 > 思维导图-DDD实战,领域驱动设计: https://www.processon.com/view/5e55d17ee4b069f82a120d06
+>
+> 我将项目使用DDD经典四层架构重构后，如何采用CQRS解决查询问题: https://cloud.tencent.com/developer/article/1741457
 
 - 教程系列:
 > 领域驱动设计实践: http://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5%EF%BC%88%E5%AE%8C%EF%BC%89
