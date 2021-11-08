@@ -16,9 +16,22 @@
 
 与其说DDD是将业务与技术分离的架构设计方法论，不如说，DDD更关心的是一个领域模型的动作，如何去编排领域动作完成业务case；其实我们日常的业务架构设计中，也是可以做到业务与技术分离的，只不过我们更多的数据流（哪一步存那个表，取哪一个表），DDD是模型领域流（哪一步是哪一个领域对象或者聚合的哪一个动作完成）推动
 
+DDD与微服务的关系是相辅相成的，DDD更多的是业务架构设计的思想，关注于功能维度（聚合实体的动作）和工程维度（限界上下文映射的划分），它可以来指导微服务的划分设计，是理论；而微服务更多关注质量和运营维度（可测试性、扩展性、性能、可用性），是战术层面的实现；DDD应用架构模型，也为微服务的系统架构做出指导，更好的做到`技术与实现`分离
+
 ----
 
 ## 战略设计与战术设计
+
+### 战术设计
+#### 聚合、聚合根、实体、值对象的关系
+
+- **聚合(Aggregate)：** 逻辑概念，在代码组织层面是一个包。聚合中是包含了聚合根和所属一个范围边界的，实体、值对象的集合。通过聚合根实体，可以导航到聚合
+
+> 聚合体现的是一种整体与部分的关系。正是因为有这样的关系，在操作整体的时候，整体就封装了对部分的操作。但并非所有对象间的关系都有整体与部分的关系，而那些不是整体与部分的关系是不能设计成聚合的。因此，正确地识别聚合关系就变得尤为重要。
+
+- **实体(Entity)：** 实体是有唯一主键的，有生命周期、有状态、有动作，实体可以通过ID来区分两个不同的实体
+- **聚合根(Aggregate Root)：** 聚合根是一个特殊的Entity，它是一个聚合的入口和标示；不同的aggregateId标示不同的聚合对象，聚合根要全局唯一；聚合根内的Entity的Id，在聚合根内唯一即可
+- **值对象(Value Object)：** 值对象的核心是`值`，没有生命周期，附着于实体和聚合根；它只有简单的动作（创建的校验这样的）；只要两个值对象的所有字段是相等的，那么就是同一个值对象
 
 ----
 
@@ -35,10 +48,15 @@
 - Repository资源库、DomainEvent领域事件：
   - 都应该为抽象的接口，在Infrastructure层完成实现
   - Repository的实现可能是Mybatis、Redis、JdbcTemplate等；领域事件的发布，可能是本地Message Event Bus、RocketMQ、KafKa；而这些不是领域层关心的事情
+  - Repository操作的应该是聚合(Aggregate)，不应该是Entity
 - DomainService领域事件：
-  - 如果一个业务逻辑涉及到一个聚合的多个实体动作协调完成时，逻辑应该抽象到领域服务中(例如转账)
+  - 如果一个业务逻辑涉及到一个聚合的多个实体动作协调完成时，逻辑应该抽象到领域服务中(例如转账)，或者说是协调两个同聚合类型完成业务动作的
   - 类似生成序列号这样的逻辑，虽然是某一个聚合的动作，但是又与业务逻辑不是那么的强相关，抽象成独立的领域服务
   - 领域事件的命名可以是动作名称，例如：TransferDomainService；也可以是某一个聚合的领域服务，例如：AccountingVoucherDomainService
+- 实践经验：
+  - 聚合根和实体的动作，更倾向于对状态、数据的改变（这是核心业务逻辑）
+  - 领域服务更倾向于：复杂业务逻辑（例如需要两个同聚合的对象协作完成的）、序列生成、针对聚合的获取动作（例如获取默认文件显示名）
+  - 不能将所有动作都放入实体->完全的充血模型会导致实体不可维护；也不可以将所有的动作放到领域服务->贫血模型；实体、聚合根，一定是聚焦以非常核心的动作
 
 #### Application应用层：
 - 协调一个或多个聚合根、防腐层、领域服务、领域事件，完成业务逻辑的**编排**；一个应用服务的方法是一个业务Case
@@ -81,6 +99,7 @@
 ### CQRS模式
 
 **定义：** Command Query Responsibility Segregation（命令查询的职责分离）
+
 - 在DDD的架构风格中，将命令动作与查询动作分离的一种模式。CQRS已经超过了DDD的范畴，它属于如何使用DDD的一种策略
 - 使用CQRS的目的在于，解决纯查询类的逻辑，通过`domain model`的方式会非常复杂的问题；将指令类动作和查询类动作分离
 - 作用在Application应用服务层
@@ -98,21 +117,42 @@
 - `CommandService`和`QueryService` 不要互相调用
 - `QueryService`不要有业务逻辑，纯查询
 
+#### 思考
+
+- Query作用在应用层，是一个独立的Service
+- 应该在应用层的Adaptor中单独为query的接口做适配，然后在infra中实现查询逻辑（这样避免破坏DIP原则，不需要application依赖infra中的dao）；同时，在infra中可以根据不同的技术实现完成查询（MyBatis查询数据库、Cache查询、ES查询等）
+
 **参考：**
-> ddd的战术篇: CQRS: https://blog.csdn.net/abchywabc/article/details/80879514
+
+- 实践系列:
+> Thoughtworks-后端开发实践系列——领域驱动设计(DDD)编码实践: https://zhuanlan.zhihu.com/p/75931257
 >
+> 新项目从零到一DDD实战思考与总结: https://developer.51cto.com/art/202106/668962.htm
+
+- 理论系列:
+> DDD 模式从天书到实践: https://zhuanlan.zhihu.com/p/91525839
+>
+> DDD理论学习系列——案例及目录: https://www.jianshu.com/p/6e2917551e63
+>
+> 一文带你落地DDD: https://juejin.cn/post/7004002483601145863
+
+- 思考系列:
+> Thoughtworks-使用DDD指导业务设计的一点思考: https://insights.thoughtworks.cn/ddd-business-design/
+>
+> Thoughtworks-DDD实施过程中的点滴思考: https://zhuanlan.zhihu.com/p/65948474
+>
+> 汤雪华-浅谈我对DDD领域驱动设计的理解: https://www.cnblogs.com/netfocus/p/5548025.html
+>
+> 思维导图-DDD实战,领域驱动设计: https://www.processon.com/view/5e55d17ee4b069f82a120d06
+>
+> 我将项目使用DDD经典四层架构重构后，如何采用CQRS解决查询问题: https://cloud.tencent.com/developer/article/1741457
+
+- 教程系列:
 > 领域驱动设计实践: http://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5%EF%BC%88%E5%AE%8C%EF%BC%89
 >
 > 阿里技术专家详解DDD系列第四讲：领域层设计规范: https://mp.weixin.qq.com/s/NoRTUSovcO2Yz237k0ceIw#at
 >
-> DDD实施过程中的点滴思考: https://zhuanlan.zhihu.com/p/65948474
->
-> 使用DDD指导业务设计的一点思考: https://insights.thoughtworks.cn/ddd-business-design/
->
-> 浅谈我对DDD领域驱动设计的理解: https://www.cnblogs.com/netfocus/p/5548025.html
->
-> DDD理论学习系列——案例及目录: https://www.jianshu.com/p/6e2917551e63
->
-> 领域驱动设计DDD和CQRS落地: https://www.jianshu.com/p/Tozpp3
->
-> 新项目从零到一DDD实战思考与总结: https://developer.51cto.com/art/202106/668962.htm
+> 基于 DDD 的微服务设计实例代码详解: https://zq99299.github.io/note-book2/ddd/04/01.html#%E9%A1%B9%E7%9B%AE%E5%9B%9E%E9%A1%BE
+
+
+-- 数据和动作分离；技术和业务分离
