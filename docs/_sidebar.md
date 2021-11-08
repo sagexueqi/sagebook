@@ -23,7 +23,7 @@
 
     * [分布式原理](tech_arch/distribution_consistence.md)
     * [分布式事务](tech_arch/distribution_transaction.md)
-    * [分布式锁]
+    * [分布式锁](tech_arch/distribution_lock.md)
     * [分布式ID策略]
     * [分库分表]
     * [缓存数据库一致性]
