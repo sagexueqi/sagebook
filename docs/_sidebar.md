@@ -48,7 +48,7 @@
 
     * [DDD](arch/arch_ddd.md)
     * [设计模式]
-    * [架构杂想]
+    * [架构杂想](arch/arch_think.md)
     * [稳定性与可用性]
 
 * 其他
