@@ -27,6 +27,7 @@
     * [分布式ID策略]
     * [分库分表]
     * [缓存数据库一致性]
+    * [消息丢失与幂等](tech_arch/message_lost_idempotent.md)
 
 * 系统架构
 
