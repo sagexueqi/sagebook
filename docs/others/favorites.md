@@ -5,3 +5,4 @@
 - 业务架构、应用架构、数据架构和技术架构：https://www.cnblogs.com/Leo_wl/p/8257424.html
 - DDD领域驱动设计基本理论知识总结：https://www.cnblogs.com/netfocus/archive/2011/10/10/2204949.html
 - 设计模式之禅: https://www.kancloud.cn/sstd521/design/193489
+- prometheus-book: https://yunlzheng.gitbook.io/prometheus-book/parti-prometheus-ji-chu/promql/prometheus-metrics-types
