@@ -210,3 +210,5 @@ public class LockFreeQueue {
 > 高性能队列——Disruptor: https://tech.meituan.com/2016/11/18/disruptor.html
 >
 > java轻松实现无锁队列: https://www.cnblogs.com/linlinismine/p/9263426.html
+>
+> 你应该知道的高性能无锁队列Disruptor: https://juejin.cn/post/6844903648875528206
