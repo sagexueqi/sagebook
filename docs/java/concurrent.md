@@ -1,5 +1,9 @@
 # 并发编程
 
+## Java内存模型
+
+---
+
 ## 线程池
 
 ### 关于用户态和内核态:
@@ -125,3 +129,84 @@ public class MyThreadPool extends ThreadPoolExecutor {
 - Woker如何保证completedTasks等计数操作线程安全的：AQS加锁
 
 ----
+
+## 并发队列
+
+### JUC中内置的队列
+
+| 队列 | 边界性 | 是否有锁 | 数据结构 |
+| ---- | ---- | ---- | ---- |
+| ArrayBlockingQueue | 有界 | 加锁 | ArrayList |
+| LinkedBlockingQueue | 可选有界 | 加锁 | LinkedList |
+| ConcurrentLinkedQueue | 无界 | 无锁 | LinkedList |
+| DelayQueue | 无界 | 无锁 | heap |
+
+### 有锁队列
+
+**ArrayBlockingQueue**
+
+- 基于数组实现的有限队列
+- 一把锁，读写冲突，并发度较低：因为数组是一组连续的内存，每次获取完元素后，需要对数组集合做resize，这需要原子性操作来保证并发时的线程安全
+- 但仍然优先推荐使用：因为基于数组实现，在队列初始化时必须制定队列长度；一般我们基于内存和编码安全的角度考虑，还是不太允许内存中的队列元素无限增长的
+
+**LinkedBlockingQueue**
+
+- 基于链表实现的队列：由于链表的特性，在不指定初始化长度的情况下是无界队列
+- 两把锁，读写不冲突：因为链表不是连续内存集合&通过指针关联。读的时候加`read`锁，只需要保证移除当前`head`和指定新`head`是原子性即可；写的时候加`write`锁，只需要保证当前`tail`元素指向下一个元素是原子性即可
+- 并发度较高：如果可以确保队列中的消息可以足够快的被消费，可以使用；
+- 在线程池中使用需要注意：如果使用无界的LinkedBlockingQueue作为等待队列，会导致线程池中只有核心线程数在工作
+
+### 无锁队列
+
+在处理并发线程安全时，一般有两种方式来完成同步，即：锁或者是原子变量。其中，有锁队列的操作均是基于`ReenternLock`实现的锁机制，对临界区进行锁定后，进行同步操作；而`原子变量`是基于CPU提供的CAS，对共享变量完成原子性的比较和替换，以达到无锁同步操作的目的。
+
+**实现原理**
+
+- CAS：CompareAndSwap原子性操作，完成队列头尾的原子性操作
+- JUC中的`AtomicReferenceArray`提供了CAS操作 - `compareAndSet`
+- 某一位置如果无法完成替换，通过CAS自旋向下一个位置重试完成
+
+_伪代码示例：_
+
+```java
+public class LockFreeQueue {
+    private static AtomicReferenceArray<Integer> atomicReferenceArray;
+
+    // 记录head位置指针
+    private AtomicInteger head = new AtomicInteger(0);
+    // 记录tail位置指针
+    private AtomicInteger tail = new AtomicInteger(0);
+
+    public LockFreeQueue() {
+        atomicReferenceArray = new AtomicReferenceArray<>(10);
+    }
+
+    public boolean add(Integer o) {
+        // 获取元素add的索引位置
+        int index = tail.get() + 1;
+
+        // 基于CAS自旋设置元素到tail，不成功递归调用
+        while(!atomicReferenceArray.compareAndSet(index, null, o)) {
+            return add(o);
+        }
+
+        // 设置成功，移动tail指针
+        tail.incrementAndGet();
+        return true;
+    }
+
+```
+
+**问题与优势**
+
+- 基于CPU提供的原子性操作，速度和效率高
+- 冲突较高的时候，CAS自旋空循环会对CPU资源还是有很多的消耗，极端情况下甚至会打满CPU，其他线程无法获取到CPU时间
+- Disruptor框架原理也是基于CAS，但是在索引位置冲突的时候会将线程挂起，没有采用自旋空循环的方式
+
+![concurrent_disruptor_cas](./imgs/concurrent_disruptor_cas.png)
+
+**参考:**
+
+> 高性能队列——Disruptor: https://tech.meituan.com/2016/11/18/disruptor.html
+>
+> java轻松实现无锁队列: https://www.cnblogs.com/linlinismine/p/9263426.html
