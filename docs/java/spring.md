@@ -342,6 +342,8 @@ mybatis-spring保证、jdbcTemplate保证：都是基于Spring-jdbc的DataSource
 
 #### 自定义标签
 
+#### BeanDefinitionRegistryPostProcessor
+
 #### BeanFactoryProcessor
 
 #### BeanPostProcessor
