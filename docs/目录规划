@@ -1,0 +1,38 @@
+Tech Of Java
+ - JVM_虚拟机
+    - JVM内存模型
+    - JVM对象分配与GC策略
+    - GC算法与回收器
+    - JVM调优
+ - ClassLoader_类加载机制
+    - JVM类加载机制
+    - Tomcat类加载机制
+ - Mulit-Thread_多线程
+    - 线程
+    - 线程池
+ - Concurrent_并发编程
+    - Java内存模型
+    - CAS与自旋
+    - 并发集合
+    - 并发队列
+        - 有锁队列
+        - 无锁队列
+    - AQS
+ - NIO
+    - epoll()与select()
+    - NIO中的关键概念
+    - Java NIO编码范式
+    - Zero Copy 零拷贝技术
+ - Spring-Framework_Spring框架
+    - Core Tech核心概念
+    - Spring AOP
+    - Spring Context
+    - Spring JDBC
+    - Spring MVC
+    - Spring 扩展机制
+
+Middleware
+- RPC&SOA
+- Kafka
+- MySQL
+- Redis
