@@ -19,20 +19,66 @@ Tech Of Java
         - 无锁队列
     - AQS
  - NIO
+    - NIO BIO AIO
     - epoll()与select()
     - NIO中的关键概念
     - Java NIO编码范式
     - Zero Copy 零拷贝技术
- - Spring-Framework_Spring框架
-    - Core Tech核心概念
-    - Spring AOP
-    - Spring Context
-    - Spring JDBC
-    - Spring MVC
-    - Spring 扩展机制
 
-Middleware
-- RPC&SOA
-- Kafka
-- MySQL
+Spring-Framework_Spring框架
+- 核心概念
+- Spring AOP
+- Spring Context
+- Spring JDBC
+- Spring MVC
+- Spring 扩展机制
+
+RPC
+- RPC原理
+- Apache Dubbo
+
+Message Queue
+- kafka
+- 高可靠消息
+
+DataBase
+- MySQL存储引擎
+- MySQL索引
+
+NoSQL
 - Redis
+    - 常用数据结构
+    - 线程模型
+    - 哨兵与集群
+- ES
+
+Distributed System
+
+- CAP&Raft一致性协议
+- 分布式事务
+- 分布式锁
+- 分布式ID策略
+- 缓存与数据库一致性
+- 注册中心与配置中心
+- 负载均衡与Session共享
+
+High Availability
+- 多中心架构
+- 限流与降级
+
+Application Architecture
+- 微服务与SOA
+- 幂等性设计
+- 分库分表
+- 超时订单方案
+- 内存撮合设计
+
+Business Architecture
+- 支付体系
+- 账户清结算
+
+Thinking in Architecture
+- 设计模式
+- 架构方法论
+
+Domain Driven Design
