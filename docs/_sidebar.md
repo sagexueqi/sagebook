@@ -60,3 +60,8 @@
     * [读书笔记](others/read_notes.md)
     * [工作生活]
     * [区块链]
+
+* Tech Of Java
+    * [JVM虚拟机模型](tech_of_java/jvm_memory_model.md)
+    * [JVM对象分配流程](tech_of_java/jvm_distribution_strategy.md)
+    * [GC算法与回收器](tech_of_java/jvm_gc.md)
