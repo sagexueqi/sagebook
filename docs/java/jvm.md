@@ -325,9 +325,9 @@ _全部使用```标记-复制```算法_
 >
 > Java虚拟机垃圾回收(三) 7种垃圾收集器: https://www.cnblogs.com/cxxjohnson/p/8625713.html 
 >
-> 来一道 PerfMa 面试必考的 GC 题: https://www.codercto.com/a/24558.html  
->
 > G1垃圾回收器详解: https://www.jianshu.com/p/aef0f4765098
+>
+> 来一道 PerfMa 面试必考的 GC 题: https://www.codercto.com/a/24558.html  
 >
 > Java中9种常见的CMS GC问题分析与解决: https://tech.meituan.com/2020/11/12/java-9-cms-gc.html 
 >
