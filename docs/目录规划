@@ -46,7 +46,7 @@ DataBase
 
 NoSQL
 - Redis
-    - 常用数据结构
+    - 常用数据结构(zset实现)
     - 线程模型
     - 哨兵与集群
 - ES
