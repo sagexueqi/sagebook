@@ -113,13 +113,20 @@ public abstract class ClassLoader {
 
 ### Tomcat类加载流程
 
-- 当`WebAppClassLoader`加载一个类时，首先向上委托给`BootstrapClassLoader`进行加载：目的是加载java核心类，避免java核心类被恶意篡改加载
-- 如果`BootstrapClassLoader`加载不到，向下`WebAppClassLoader`首先加载`WEB-INF/classes`中的类
-- `WebAppClassLoader`其次加载`WEB-INF/lib`中jar包的类：_通过这一步，在日常开发中，如果以来的第三方工具包中有类需要替换，那我们可以在工程中定义一个同包同名的类，实现自己的逻辑_
-- 通过`ExtClassLoader`加载`${JAVA_HOME}/jre/ext`路径下的类
-- 通过`CommonClassLoader`加载`${TOMCAT_HOME}/lib`下的类: _通过这一步，tomcat实现了公共类的不隔离和应用间类的隔离_
+**非双亲委派模型**
 
-> Tomcat默认使用上述打破双亲委派机制加载类，可以通过配置恢复为双亲委派机制。但是，一般来说没有必要恢复
+- 当`WebAppClassLoader`加载一个类时，首先向上委托给`ExtClassLoader`，再向上委托`BootstrapClassLoader`进行加载；此过程没有打破双亲委派机制流程，目的在于加载`JAVA_HOME/jre/lib`和`JAVA_HOME/jre/lib/ext`下的class，避免核心类被篡改
+- `WebAppClassLoader`加载`WEB-INF/classes`中的class
+- `WebAppClassLoader`加载`WEB-INF/lib`中jar包的class：_通过这一步，在日常开发中，如果以来的第三方工具包中有类需要替换，那我们可以在工程中定义一个同包同名的类，实现自己的逻辑_
+- 向上委托`CommonClassLoader`加载，`CommonClassLoader`再基于双亲委派机制向上委托`SystemClassLoader`加载`TOMECAT_HOME/lib`等路径下的class：
+
+**双亲委派模型**
+- 当`WebAppClassLoader`加载一个类时，首先向上委托给`ExtClassLoader`，再向上委托`BootstrapClassLoader`进行加载；此过程没有打破双亲委派机制流程，目的在于加载`JAVA_HOME/jre/lib`和`JAVA_HOME/jre/lib/ext`下的class，避免核心类被篡改
+- `WebAppClassLoader`向上委托`CommonClassLoader`加载，`CommonClassLoader`再基于双亲委派机制向上委托`SystemClassLoader`加载`TOMECAT_HOME/lib`等路径下的class：
+- `WebAppClassLoader`加载`WEB-INF/classes`中的class
+- `WebAppClassLoader`加载`WEB-INF/lib`中jar包的class
+
+> Tomcat打破打破双亲委派模型是做用在加载应用内class的阶段，优先加载WEB-INF下的class，加速加载速度；在加载java核心class的阶段，并没有打破，这也是出于安全的考虑
 
 **Tomcat类加载器关系**
 
@@ -135,9 +142,142 @@ public abstract class ClassLoader {
 
 #### Tomcat类加载源码概要分析
 
-----
+```java
+// Bootstrap类的init方法，初始化Tomcat体系下的相关ClassLoader
+public final class Bootstrap {
+    public void init() throws Exception {
+        // todo: CL-01 初始化ClassLoader入口
+        initClassLoaders();
+    }
+    // todo: CL-02 初始化Tomcat的公共类加载器
+    private void initClassLoaders() {
+        try {
+            // todo：CL-02 创建CommonClassLoader
+            commonLoader = createClassLoader("common", null);
+            if (commonLoader == null) {
+                // no config file, default to this loader - we might be in a 'single' env.
+                commonLoader = this.getClass().getClassLoader();
+            }
+            // todo: CL-03 创建CatalinaClassLoader，默认也是用CommonClassLoader
+            catalinaLoader = createClassLoader("server", commonLoader);
+            // todo: CL-04 创建SharedClassLoader，默认也是用CommonClassLoader
+            sharedLoader = createClassLoader("shared", commonLoader);
+        } catch (Throwable t) {
+            handleThrowable(t);
+            log.error("Class loader creation threw exception", t);
+            System.exit(1);
+        }
+    }
+}
 
-## 自定义ClassLoader
+// StandardContext负责启动各个应用
+public class StandardContext extends ContainerBase implements Context, NotificationEmitter {
+
+    // todo: CL-06 各应用启动
+    protected synchronized void startInternal() throws LifecycleException {
+        // .... 省略其他逻辑 .... //
+
+        // todo: CL-07 初始化各web应用的WebAppClassLoader
+        if (getLoader() == null) {
+            WebappLoader webappLoader = new WebappLoader();
+            webappLoader.setDelegate(getDelegate());
+            setLoader(webappLoader);
+        }
+
+        // .... 省略其他逻辑 .... //
+    }
+
+    public void setLoader(Loader loader) {
+        // .... 省略其他逻辑 .... //
+
+        // todo: CL-08 启动WebAppClassLoader
+        ((Lifecycle) loader).start();
+
+        // .... 省略其他逻辑 .... //
+    }
+}
+
+// WebappLoader负责创建和启动WebappClassLoaderBase类加载器
+public class WebappLoader extends LifecycleMBeanBase implements Loader, PropertyChangeListener {
+    // todo: CL-09 启动WebAppClassLoader
+    protected void startInternal() throws LifecycleException {
+        // .... 省略其他逻辑 .... //
+
+        // todo: CL-10 创建WebappClassLoaderBase
+        classLoader = createClassLoader();
+        classLoader.setResources(context.getResources());
+        classLoader.setDelegate(this.delegate);
+
+        // .... 省略其他逻辑 .... //
+    }
+
+    public void backgroundProcess() {
+        // 热部署实现流程
+    }
+}
+
+// 应用的类加载器实现
+public abstract class WebappClassLoaderBase extends URLClassLoader implements Lifecycle, InstrumentableClassLoader, WebappProperties, PermissionCheck {
+
+    // 启动逻辑，在这里决定了class资源的装载顺序是先 /WEB-INF/classes 再 /WEB-INF/lib
+    @Override
+    public void start() throws LifecycleException {
+
+        state = LifecycleState.STARTING_PREP;
+
+        // todo: CL-11 WebappClassLoaderBase加载/WEB-INF/classes下的资源
+        WebResource[] classesResources = resources.getResources("/WEB-INF/classes");
+        for (WebResource classes : classesResources) {
+            if (classes.isDirectory() && classes.canRead()) {
+                localRepositories.add(classes.getURL());
+            }
+        }
+
+        // todo: CL-12 WebappClassLoaderBase加载/WEB-INF/lib下载jar的资源
+        WebResource[] jars = resources.listResources("/WEB-INF/lib");
+        for (WebResource jar : jars) {
+            if (jar.getName().endsWith(".jar") && jar.isFile() && jar.canRead()) {
+                localRepositories.add(jar.getURL());
+                jarModificationTimes.put(
+                        jar.getName(), Long.valueOf(jar.getLastModified()));
+            }
+        }
+
+        state = LifecycleState.STARTED;
+    }
+
+    // todo: CL-13 重写loadClass 打破双亲委派加载类。所谓打破双亲委派，也是在加载应用和tomcat容器的class时。加载java core的class，还是要遵循双亲委派机制的流程以保证安全
+    public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        // (0) Check our previously loaded local class cache
+        // todo: CL-14(0) 检查当前WebAppClassLoader是否已经加载过当前的class
+        clazz = findLoadedClass0(name);
+
+        // (0.1) Check our previously loaded class cache
+        // todo: CL-14(0.1) 检查JVM虚拟机是否已经加载过当前class
+        clazz = JreCompat.isGraalAvailable() ? null : findLoadedClass(name);
+
+        // todo: CL-14(0.2)使用ExtClassLoader加载class，ExtClassLoader会向上委托到BootstrapClassLoader加载（这样可以避免/jre/lib和/jre/lib/ext的核心类被替换）
+        ClassLoader javaseLoader = getJavaseClassLoader();
+        clazz = javaseLoader.loadClass(name);
+
+        // --- todo: CL-14 javase核心类的加载流程，还是符合双亲委托机制流程的 --- //
+
+        // todo: CL-14(1.0) 使用双亲委托机制流程加载class
+        if (delegateLoad) {
+            // todo: CL-14(1.1) WebAppClassLoader先委托给parent加载器（CommonClassLoader）加载，按照 Common -> System 的顺序委托加载
+            clazz = Class.forName(name, false, parent);
+        }
+
+        // todo: CL-14(2) 无论是不是双亲委托，上一步没有找到class，都要通过自己加载
+        clazz = findClass(name);
+
+        if (!delegateLoad) {
+            // todo: CL-14(3) 不使用双亲委派流程时，WebAppClassLoader没有加载到class后，也要委托给parent加载器（CommonClassLoader）加载，按照 Common -> System 的顺序委托
+            clazz = Class.forName(name, false, parent);
+        }
+    }
+}
+```
 
 **参考**
 
@@ -146,3 +286,5 @@ public abstract class ClassLoader {
 > Java ClassLoader实现热加载: https://my.oschina.net/ososchina/blog/1599977
 >
 > java利用classloader实现热部署: https://blog.csdn.net/chaofanwei2/article/details/51298818
+>
+> Apache Tomcat 9 - Class Loader How-To: https://tomcat.apache.org/tomcat-9.0-doc/class-loader-howto.html
