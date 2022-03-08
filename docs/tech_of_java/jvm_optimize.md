@@ -77,3 +77,5 @@
 > 老大难的GC原理及调优，这下全说清楚了: https://juejin.cn/post/6844903953004494856 
 >
 > CMS收集器产生的问题和解决方案: https://www.cnblogs.com/hongdada/p/10489643.html#%E6%8F%90%E5%8D%87%E5%A4%B1%E8%B4%A5%EF%BC%88promotion-failed%EF%BC%89
+>
+> Jvm FullGC多久一次正常？: https://www.zhihu.com/question/40840626/answer/2230798270
