@@ -62,8 +62,9 @@
     * [区块链]
 
 * Tech Of Java
-    * [JVM虚拟机模型](tech_of_java/jvm_memory_model.md)
-    * [JVM对象分配流程](tech_of_java/jvm_distribution_strategy.md)
-    * [GC算法与回收器](tech_of_java/jvm_gc.md)
-    * [JVM调优](tech_of_java/jvm_optimize.md)
-    * [ClassLoader类加载](tech_of_java/classloader.md)
+    * [JVM Memory Model](tech_of_java/jvm_memory_model.md)
+    * [Memory Distribution & GC Strategy](tech_of_java/jvm_distribution_strategy.md)
+    * [GC Algorithm & Collector](tech_of_java/jvm_gc.md)
+    * [JVM Optimize](tech_of_java/jvm_optimize.md)
+    * [ClassLoader](tech_of_java/classloader.md)
+    * [Mulit Thread](tech_of_java/mulit_thread.md)

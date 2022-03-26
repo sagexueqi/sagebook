@@ -7,10 +7,10 @@ Tech Of Java
     - JVM类加载机制
     - Tomcat类加载机制
  - Mulit-Thread_多线程
+    - Java内存模型(JMM)
     - 线程
     - 线程池
  - Concurrent_并发编程
-    - Java内存模型
     - CAS与自旋
     - 并发集合
     - 并发队列

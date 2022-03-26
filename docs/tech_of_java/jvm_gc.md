@@ -1,4 +1,4 @@
-# GC算法与回收器
+# GC Algorithm & Collector(GC算法与回收器)
 
 ## GC垃圾回收
 

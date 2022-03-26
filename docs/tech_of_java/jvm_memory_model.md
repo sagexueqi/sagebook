@@ -1,4 +1,4 @@
-# JVM内存模型
+# JVM Memory Model(JVM内存模型)
 
 ![jvm_jvm内存模型](./images/jvm_jvm%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.png)
 

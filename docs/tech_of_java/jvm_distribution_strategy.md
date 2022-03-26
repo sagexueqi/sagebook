@@ -1,4 +1,4 @@
-# JVM对象分配与GC策略
+# Memory Distribution & GC Strategy(JVM对象分配与GC策略)
 
 ## 空间担保机制
 

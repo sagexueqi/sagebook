@@ -1,4 +1,4 @@
-# ClassLoader类加载器
+# ClassLoader(类加载器)
 
 ## JVM的类加载机制
 
@@ -70,6 +70,11 @@ public abstract class ClassLoader {
     }
 }
 ```
+
+> **loadClass()和findClass()的区别**
+>
+> - 只重写findClass()：不打破双亲委派机制，已加载的class会被缓存
+> - 重写loadClass()：自定义类加载的整个流程，可以打破双亲委派机制。有些场景，我们可能不需要缓存已经被加载的class，此时就需要重写loadClass()方法，去掉缓存的逻辑
 
 #### 双亲委派的特点
 
