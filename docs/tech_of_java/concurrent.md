@@ -149,6 +149,91 @@ public class LockFreeQueue {
 
 ## 并发集合
 
+### ConcurrentHashMap
+
+#### HashMap
+
+**K-V键值对，通过KEY的hashCode计算index位置**
+
+**数据结构:** 数组(bucket) + (链表 + 红黑树)`解决hash冲突`
+
+- 数组：存放hash key的桶(bucket)
+- 链表：jdk1.8采用尾插法，解决jdk1.7之前在扩容时hash碰撞导致的死循环问题；所以在jdk8之后多线程使用HashMap只有被覆盖的问题，没有死循环的情况
+- 红黑树：当链表长度=`6`时进化为红黑树；当节点数小于`8`时，退化为链表
+  - 进化为红黑树的目的在于快速查找，红黑树遍历的时间复杂度为：`O(logN)`;而链表遍历的时间复杂度为：`O(N)` _因为尾插法，最新的记录在尾部_
+  - 为什么小于8时退化，这是避免频繁的在链表和红黑树间变化
+
+> **扩展思考**
+>
+> 既然红黑树的目的是提高查找速度，那为什么像MySQL这样的数据库引擎是使用B-TREE这种数据格式，而不是使用红黑树呢？
+>
+> 红黑树是平衡二叉树，根据二叉树的特性，右边节点一定是大于根节点的；这样就会产生一个问题，如果是聚簇(主键)索引(值一直递增)，二叉树是会退化成链表，时间复杂度退化为O(N)
+
+#### ConcurrentHashMap的线程安全
+
+- `get()`方法时无锁的
+- `put()`操作时，如果bucket为null，基于`CAS`无锁的方式设值value；如果bucket已经有值或者CAS失败，对当前Node加synchronized锁同步
+
+```java
+public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements ConcurrentMap<K,V>, Serializable {
+    final V putVal(K key, V value, boolean onlyIfAbsent) {    
+        for (Node<K,V>[] tab = table;;) {
+            Node<K,V> f; int n, i, fh;
+            if (tab == null || (n = tab.length) == 0)
+                tab = initTable();
+            // 当前位置为null，基于CAS赋值，如果此时hash冲突，进入下一次循环
+            // Node<K,V> f 不为空，进入到synchronized (f)逻辑，加锁赋值
+            else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
+                if (casTabAt(tab, i, null,
+                             new Node<K,V>(hash, key, value, null)))
+                    break;                   // no lock when adding to empty bin
+            }
+            else if ((fh = f.hash) == MOVED)
+                tab = helpTransfer(tab, f);
+            else {
+                V oldVal = null;
+                synchronized (f) {
+                    // 尾插法解决hash冲突
+                }
+            }
+        }
+        return null;
+    }
+
+}
+```
+
+### CopyOnWriteArrayList
+
+#### ConcurrentModificationException问题
+
+对于`ArrayList`、`LinkedList`集合，在for循环中进行`remove`操作会抛出ConcurrentModificationException异常。
+
+这并不是线程安全问题，而是针对`for`循环操作，JVM会优化为`Iterator`迭代器；如果调用`List`的`remove()`方法，会修改`modCount`的值；当迭代器进行下次迭代时，会比较该值是否与预期相等，此时会抛出该异常。
+
+存在该异常的目的：也是一种集合线程安全的保证，针对可能存在的并发修改进行快速失败
+
+**解决方案**
+
+- 将List集合转换为`Iterator`迭代器进行迭代，使用其的`remove()`方法
+- 使用`CopyOnWriteArrayList`
+
+#### CopyOnWriteArrayList的线程安全
+
+- 线程安全的ArrayList
+- 基于读写分离与最终一致性模型
+- 修改时，基于`ReentrantLock`加锁，copy一份副本进行修改，最后再重新指向
+- 读取时，无锁，直接获取当前Array进行读取
+
 ----
 
 ## AQS
+
+AbstractQueuedSynchronizer: 抽象队列同步器。
+
+AQS的核心思想：如果被请求的共享资源是空闲的，就将当前的请求的线程置为有效线程，将共享资源设置为锁定状态；如果资源被占用，则线程进入等待队列，基于某种唤醒机制来实现锁的分配。这个机制主要用的是CLH队列的变体实现的，将暂时获取不到锁的线程加入到队列中。
+
+### JUC中使用AQS实现的并发工具
+
+**参考**
+> 从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队: https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html
