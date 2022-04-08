@@ -231,9 +231,115 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements Concurre
 
 AbstractQueuedSynchronizer: 抽象队列同步器。
 
-AQS的核心思想：如果被请求的共享资源是空闲的，就将当前的请求的线程置为有效线程，将共享资源设置为锁定状态；如果资源被占用，则线程进入等待队列，基于某种唤醒机制来实现锁的分配。这个机制主要用的是CLH队列的变体实现的，将暂时获取不到锁的线程加入到队列中。
+AQS的核心思想：如果被请求的共享资源是空闲的，就将当前的请求的线程置为有效线程，将共享资源设置为锁定状态；如果资源被占用，则线程进入等待队列阻塞等待被唤醒
+
+### AQS的数据结构
+
+**State变量:** 同步状态变量，实现者通过调用AQS通过提供对State变量的CAS操作，对线程的状态做出处理。CAS操作成功的线程，可以进行自己的处理；未能成功的，会被封装为`Waiter`添加到等待队列中。
+
+**AQS队列:** Craig、Landin and Hagersten队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列（FIFO），AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配。
+
+**exclusiveOwnerThread:**当前持有共享变量的线程
+
+![concurrent_aqs_clh](./images/concurrent_aqs_clh.png)
+
+> AQS与公平锁和非公平锁的关系: 没有直接关系。是否是公平锁还是非公平锁，是在各个Lock的实现中，获取锁阶段判断AQS等待队列中是否有线程在等待。公平锁是，有其他等待的线程就加入到队列中自旋或中断；非公平锁是直接参与一次对state的竞争，失败后再加入到队列中自旋或中断
+
+### AQS的核心工作流程
+
+**- AQS并没有完全实现共享资源竞争与释放的全部流程，它是一个抽象的编程框架，提供了state变量来实现对资源的占用与释放；它约定了获取(acquire)和释放(release)独占资源的流程，但是它没有实现如何去获取和释放资源的流程，AQS的更多关注于如何将线程添加和移除等待队列的过程**
+
+```java
+    // 获取
+    public final void acquire(int arg) {
+        if (!tryAcquire(arg) &&
+            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+            selfInterrupt();
+    }
+
+    // 释放
+    public final boolean release(int arg) {
+        if (tryRelease(arg)) {
+            Node h = head;
+            if (h != null && h.waitStatus != 0)
+                unparkSuccessor(h);
+            return true;
+        }
+        return false;
+    }
+    
+    // 将等待节点入队
+    final boolean acquireQueued(final Node node, int arg) {
+        boolean failed = true;
+        try {
+            boolean interrupted = false;
+            for (;;) {
+                // 获取前置节点
+                final Node p = node.predecessor();
+                // 前置节点如果是head，尝试再次获取资源(非公平锁时会有不成功的时候)，失败就自旋
+                if (p == head && tryAcquire(arg)) {
+                    setHead(node);
+                    p.next = null; // help GC
+                    failed = false;
+                    return interrupted;
+                }
+                // 如果前置节点不是head，则将当前线程park-挂起
+                if (shouldParkAfterFailedAcquire(p, node) &&
+                    parkAndCheckInterrupt())
+                    interrupted = true;
+            }
+        } finally {
+            if (failed)
+                cancelAcquire(node);
+        }
+    }    
+```
+
+_Interrupt中断：_ 在lockInterruptibly中有意义，在lock中没有意义，目的是代码复用
+
+_acquireQueued中的自旋过程：_ AQS队列中是公平的，按照FIFO的原则唤醒线程；所以如果当前节点的前置是head的话，表示他理论上应该是下一个被唤醒的，但是非公平锁时，会被竞争；自旋的目的就是时刻检查自己是不是可以被`unpark-唤醒`
+
+_acquireQueued中的挂起过程：_ 自旋是很占据cpu时间的动作，尤其是等待非常多的时候，会造成大量CPU时间被自旋消耗；所以，如果当前Node入队后，发现前置也不是head时，说明自己距离被唤醒还有一段时间间隔，则直接`park-挂起`，释放出CPU；等待`state`被释放，`unparkSuccessor()`流程唤醒，再进行自旋争抢锁
+
+**- 持有锁的线程释放state后，获取等待队列中下一个要Node，尝试唤醒**
+
+```java
+    private void unparkSuccessor(Node node) {
+        /*
+         * If status is negative (i.e., possibly needing signal) try
+         * to clear in anticipation of signalling.  It is OK if this
+         * fails or if status is changed by waiting thread.
+         */
+        int ws = node.waitStatus;
+        if (ws < 0)
+            compareAndSetWaitStatus(node, ws, 0);
+
+        /*
+         * Thread to unpark is held in successor, which is normally
+         * just the next node.  But if cancelled or apparently null,
+         * traverse backwards from tail to find the actual
+         * non-cancelled successor.
+         */
+        Node s = node.next;
+        if (s == null || s.waitStatus > 0) {
+            s = null;
+            for (Node t = tail; t != null && t != node; t = t.prev)
+                if (t.waitStatus <= 0)
+                    s = t;
+        }
+        if (s != null)
+            LockSupport.unpark(s.thread);
+    }
+```
 
 ### JUC中使用AQS实现的并发工具
 
+| 并发工具 | 与AQS关联 | 使用场景 |
+| ---- | ---- | ---- |
+| ReentrantLock 可重入锁 | 使用state保存重入次数，release到0表示释放锁 | 同步代码块 |
+| Semaphore 信号量 | | |
+
 **参考**
 > 从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队: https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html
+>
+> AQS源码解析（1）acquireQueued: https://www.jianshu.com/p/dcbcea767d69
