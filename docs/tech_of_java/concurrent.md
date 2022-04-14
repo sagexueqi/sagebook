@@ -2,7 +2,7 @@
 
 ## CAS
 
-## 什么是CAS
+### 什么是CAS
 
 CAS: `Compare And Swap`，比较并交换。一个CAS涉及如下操作：
 
@@ -14,11 +14,11 @@ CAS: `Compare And Swap`，比较并交换。一个CAS涉及如下操作：
 
 当多个线程同时对某个资源进行CAS操作时，只能有一个线程操作成功，并不会阻塞其他线程。更新失败的会收到失败信号，CAS是一种轻量级的乐观锁，或者认为是一种无锁编程的思想。
 
-## CAS的应用
+### CAS的应用
 
 **Java中CAS的实现：** 底层基于`sun.misc.Unsafe`类实现
 
-### AtomicReference
+#### AtomicReference
 
 Atomic家族主要保证在多线程环境下的原子性操作，相比我们使用`synchronized`关键字、`ReentrantLock`更加轻量。比较常用的如：`AtomicInteger`、`AtomicLong`等，但是这些都是针对指定类型的CAS操作；而`AtomicReference`作用是针对普通对象的CAS操作封装
 
@@ -42,7 +42,7 @@ public class SpinLock {
 }
 ```
 
-### CAS的问题
+#### CAS的问题
 
 **A-B-A问题**
 
@@ -239,7 +239,7 @@ AQS的核心思想：如果被请求的共享资源是空闲的，就将当前�
 
 **AQS队列:** Craig、Landin and Hagersten队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列（FIFO），AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配。
 
-**exclusiveOwnerThread:**当前持有共享变量的线程
+**exclusiveOwnerThread:** 当前持有共享变量的线程
 
 ![concurrent_aqs_clh](./images/concurrent_aqs_clh.png)
 

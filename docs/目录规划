@@ -12,12 +12,12 @@ Tech Of Java
     - 线程池
  - Concurrent_并发编程
     - CAS与自旋
-    - 并发集合
     - 并发队列
         - 有锁队列
         - 无锁队列
+    - 并发集合
     - AQS
- - NIO
+ - Java-IO
     - NIO BIO AIO
     - epoll()与select()
     - NIO中的关键概念

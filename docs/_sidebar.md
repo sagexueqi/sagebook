@@ -4,13 +4,17 @@
     * [算法]
 
 * Java
-
-    * [JavaSE](java/javase.md)
-    * [并发编程](java/concurrent.md)
-    * [JVM](java/jvm.md)
-    * [ClassLoader](java/classloader.md)
-    * [NIO](java/nio.md)
     * [Spring](java/spring.md)
+
+* Tech Of Java
+    * [JVM Memory Model](tech_of_java/jvm_memory_model.md)
+    * [Memory Distribution & GC Strategy](tech_of_java/jvm_distribution_strategy.md)
+    * [GC Algorithm & Collector](tech_of_java/jvm_gc.md)
+    * [JVM Optimize](tech_of_java/jvm_optimize.md)
+    * [ClassLoader](tech_of_java/classloader.md)
+    * [Mulit Thread](tech_of_java/mulit_thread.md)
+    * [Concurrent](tech_of_java/concurrent.md)
+    * [JAVA IO](tech_of_java/java_io.md)
 
 * 中间件
 
@@ -60,12 +64,3 @@
     * [读书笔记](others/read_notes.md)
     * [工作生活]
     * [区块链]
-
-* Tech Of Java
-    * [JVM Memory Model](tech_of_java/jvm_memory_model.md)
-    * [Memory Distribution & GC Strategy](tech_of_java/jvm_distribution_strategy.md)
-    * [GC Algorithm & Collector](tech_of_java/jvm_gc.md)
-    * [JVM Optimize](tech_of_java/jvm_optimize.md)
-    * [ClassLoader](tech_of_java/classloader.md)
-    * [Mulit Thread](tech_of_java/mulit_thread.md)
-    * [Concurrent](tech_of_java/concurrent.md)
