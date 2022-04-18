@@ -383,7 +383,7 @@ public class NIOClient {
 - sendfile()也是一个系统调用，可以理解为将mmap()+write()系统调用整合为一次调用。这样做的好处是：减少两次上下文切换，降低上下文切换带来的CPU资源开销
 
 ### JavaNIO中的零拷贝
-- DirectByteBuffer: 直接在堆外分配内存，相比于HeapByteBuffer对内内存，可以直接被内核访问，且减少数据的拷贝
+- DirectByteBuffer: 直接在堆外分配内存，相比于HeapByteBuffer堆内内存，可以直接被内核访问，且减少数据的拷贝
 - FileChannel:Java NIO提供的用于复制文件的类，可以把文件复制到磁盘或者网络等
     - map(): 底层调用操作系统mmap方法，返回DirectByteBuffer堆外内存引用
     - write(): 与map()方法配合，实现基于mmap() + write() 方式实现

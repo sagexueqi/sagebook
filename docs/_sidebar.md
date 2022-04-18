@@ -4,9 +4,6 @@
     * [算法]
 
 * Java
-    * [Spring](java/spring.md)
-
-* Tech Of Java
     * [JVM Memory Model](tech_of_java/jvm_memory_model.md)
     * [Memory Distribution & GC Strategy](tech_of_java/jvm_distribution_strategy.md)
     * [GC Algorithm & Collector](tech_of_java/jvm_gc.md)
@@ -15,6 +12,9 @@
     * [Mulit Thread](tech_of_java/mulit_thread.md)
     * [Concurrent](tech_of_java/concurrent.md)
     * [JAVA IO](tech_of_java/java_io.md)
+
+* Spring Framework
+    * [Spring Core](springframework/spring_core.md)
 
 * 中间件
 
