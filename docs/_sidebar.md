@@ -15,6 +15,8 @@
 
 * Spring Framework
     * [Spring Core](springframework/spring_core.md)
+    * [Spring JDBC](springframework/spring_jdbc.md)
+    * [Spring MVC](springframework/spring_mvc.md)
 
 * 中间件
 
