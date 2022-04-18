@@ -17,6 +17,7 @@
     * [Spring Core](springframework/spring_core.md)
     * [Spring JDBC](springframework/spring_jdbc.md)
     * [Spring MVC](springframework/spring_mvc.md)
+    * [Spring Extensions](springframework/spring_extensions.md)
 
 * 中间件
 
