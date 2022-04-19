@@ -4,14 +4,14 @@
     * [算法]
 
 * Java
-    * [JVM Memory Model](tech_of_java/jvm_memory_model.md)
-    * [Memory Distribution & GC Strategy](tech_of_java/jvm_distribution_strategy.md)
-    * [GC Algorithm & Collector](tech_of_java/jvm_gc.md)
-    * [JVM Optimize](tech_of_java/jvm_optimize.md)
-    * [ClassLoader](tech_of_java/classloader.md)
-    * [Mulit Thread](tech_of_java/mulit_thread.md)
-    * [Concurrent](tech_of_java/concurrent.md)
-    * [JAVA IO](tech_of_java/java_io.md)
+    * [JVM Memory Model](java/jvm_memory_model.md)
+    * [Memory Distribution & GC Strategy](java/jvm_distribution_strategy.md)
+    * [GC Algorithm & Collector](java/jvm_gc.md)
+    * [JVM Optimize](java/jvm_optimize.md)
+    * [ClassLoader](java/classloader.md)
+    * [Mulit Thread](java/mulit_thread.md)
+    * [Concurrent](java/concurrent.md)
+    * [JAVA IO](java/java_io.md)
 
 * Spring Framework
     * [Spring Core](springframework/spring_core.md)
