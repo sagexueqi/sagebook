@@ -179,17 +179,140 @@ Bean是无法感知到自己存在Spring容器之中，Aware的作用是为了�
 
 ## BeanPostProcessor
 
+### 作用
+
+> Bean初始化阶段 - 依赖注入后，初始化前和初始化完成后
+
+通过BeanPostProcessor我们可以改变容器中已实例化甚至是已经初始化完成后的Bean的形态。例如，我们想为每一个Bean做动态代理增强，返回动态代理后的对象，我们就可以通过BeanPostProcessor实现。
+
+Spring的@Transactional等注解的增强实现，底层也是通过BeanPostProcessor实现。Bean实例化完成后，通过动态代理返回被数据库事务环绕增强的Bean。或者，我们可以为自定义注解的属性，注入指定的对象，类似Dubbo的`@Reference`注解。
+
+我们可以定义多个不同的BeanPostProcessor，以实现不同的处理逻辑。
+
+Spring开闭原则的最好体现：Spring针对Bean的构造已经形成了一套体系，如果我们需要修改这其中的过程，只能使用Spring提供的接口进行扩展。
+
+### 实现方式
+
+```java
+public class DemoBeanPostProcessor implements BeanPostProcessor {
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        // 如果Bean是Demo类型，创建一个新的Demo对象返回
+        if (bean instanceof Demo) {
+            System.out.println("original Demo bean: " + bean);
+
+            Demo demo = new Demo();
+            demo.setName("wrapper-xueqi");
+            return demo;
+        }
+
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        // 即使实现方法中没有任何逻辑，也不能返回null
+        if (bean instanceof Demo) {
+            // 验证Demo bean已经是新的对象，通过这一步我们就可以知道
+            // 当我们相对一个bean或者所有bean做增强的时候，可以通过BeanPostProcessor生成并返回新的增强对象
+            System.out.println("after initialization Demo bean: " + bean);
+        }
+        return bean;
+    }
+}
+```
+
+### 使用场景
+
+- Spring `@Transactional` `@Autowired` 注解的实现，均是基于BeanPostProcessor实现的，例如：`AutowiredAnnotationBeanPostProcessor`
+- Apache Dubbo客户端的`@Reference`实现
+
 ----
 
-## @PostConstruct
+## InitializingBean
+
+### 作用
+
+> Bean初始化阶段 - 依赖注入后，初始化过程中，init方法执行前
+
+Bean的初始化方法，在这个过程中我们可以完成一些初始化操作。被注入的Bean也可以使用，例如预热缓存，数据库load数据等
+
+和init方法的区别只是执行顺序不一样，一般的开发中我们只需要实现一种方式即可；Spring只是为我们提供了更多的选择
+
+### 实现方式
+
+实现InitializingBean接口，并重写`afterPropertiesSet`方法
 
 ----
 
-## @PreDestroy
+## @PostConstruct/@PreDestroy
+
+### 作用
+
+> Bean初始化（销毁）阶段 - 依赖注入后，初始化前；destroy方法执行前
+
+`@PostConstruct`和`@PreDestroy`注解并不是Spring提供的特性，而是JDK提供的标准注解。Spring通过`CommonAnnotationBeanPostProcessor`实现处理逻辑的执行
+
+也可以完成初始化操作，我认为这只是Spring为了实现对代码的低入侵兼容Java注解的方案。
 
 ----
 
 ## ApplicationContextInitializer
+
+### 作用
+
+> SpringBoot - 容器refresh前执行
+
+在SpringBoot环境下，我们开发一些工具组件的时候，不一定希望使用方以@Bean的方式注入容器并生效。此时我们可以通过ApplicationContextInitializer在容器刷新前，将组件的BeanDefinition注入到容器中。
+
+ApplicationContextInitializer是Spring Framework提供的扩展点，并不是Spring Boot的特有属性。只不过在原生Spring编码的过程中，我们更多依赖XML配置来引入工具组件；而在SpringBoot体系下，基于`约定大于配置`的理念，很多复杂组件我们不希望通过`@Bean`的方式引入应用中，而是希望以自动的方式将组件相关的Bean自动注入到容器内。此时，我们需要依赖Spring提供的基于SPI模式的ApplicationContextInitializer实现。
+
+### 实现方式
+
+_以向容器内注册一个BeanPostProcessor组件为例_
+
+- 实现ApplicationContextInitializer接口，一般使用GenericApplicationContext泛型
+
+```java
+public class DemoApplicationContextInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
+
+    @Override
+    public void initialize(GenericApplicationContext applicationContext) {
+        // 模拟在SpringBoot中注册一个自定义的BeanPostProcessor
+        RootBeanDefinition demoBeanDefinition = new RootBeanDefinition(DemoBootBeanPostProcessor.class);
+
+        applicationContext.registerBean(DemoBootBeanPostProcessor.class,new BeanDefinitionCustomizer() {
+            // 处理BeanDefinition
+            @Override
+            public void customize(BeanDefinition beanDefinition) {
+                beanDefinition.getPropertyValues().add("key", "123456");
+            }
+        });
+    }
+
+    public static class DemoBootBeanPostProcessor implements BeanPostProcessor {
+
+        private String key;
+
+        @Override
+        public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+            System.out.println("======== Execute BeanPostProcessor postProcessBeforeInitialization ========" + key);
+            return bean;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
+        }
+    }
+}
+
+```
+
+- 在`/resources/META-INF/`路径下创建`spring.factories`文件，使自定义的ApplicationContextInitializer生效
+
+```properties
+org.springframework.context.ApplicationContextInitializer=io.lizard.springbootextensions.ext.DemoApplicationContextInitializer
+```
 
 ----
 
