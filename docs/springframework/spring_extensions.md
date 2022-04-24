@@ -146,6 +146,37 @@ public class DemoPropertyPlaceholderConfigurer extends PropertyPlaceholderConfig
 }
 ```
 
+最后，将`DemoPropertyPlaceholderConfigurer`注册到容器中即可
+
+**高级实现: BeanDefinitionRegistryPostProcessor；对自定义BeanDefinition进行动态注册**
+
+BeanFactoryPostProcessor的主要目的还是在于修改BeanDefinition，我们很多常见需要组件自动注册BeanDefinition，此时可以使用BeanDefinitionRegistryPostProcessor实现自动注册和Definition的修改
+
+执行的优先级小于直接实现`BeanPostProcessor`的类
+
+```java
+public class DemoBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanDefinitionRegistry) throws BeansException {
+        // 做BeanDefinition注册的操作，需要注意的是，注册之前还是要先检查容器中是否已经有相同BeanName的Definition已注册
+
+        if (!beanDefinitionRegistry.containsBeanDefinition("registry-demoBean")) {
+            BeanDefinition beanDefinition = new RootBeanDefinition(Demo.class);
+            beanDefinition.getPropertyValues().add("name", "registry-demoBean");
+
+            beanDefinitionRegistry.registerBeanDefinition("registry-demoBean", beanDefinition);
+        }
+    }
+
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
+        // 做修改BeanDefinition操作
+    }
+}
+```
+
+最后，将`DemoBeanDefinitionRegistryPostProcessor`注册到容器中即可
+
 ### 使用场景
 
 - BeanFactoryPostProcessor会通过BeanFactory的getBean方法提前实例化，但是不会注入属性和初始化，所以无法注入Spring Bean
@@ -261,34 +292,46 @@ Bean的初始化方法，在这个过程中我们可以完成一些初始化操�
 
 ### 作用
 
-> SpringBoot - 容器refresh前执行
+> SpringBoot(或Spring Web) - Spring Context refresh前执行
 
-在SpringBoot环境下，我们开发一些工具组件的时候，不一定希望使用方以@Bean的方式注入容器并生效。此时我们可以通过ApplicationContextInitializer在容器刷新前，将组件的BeanDefinition注入到容器中。
+ApplicationContextInitializer是Spring Framework提供的扩展点，并不是Spring Boot的特有属性。
 
-ApplicationContextInitializer是Spring Framework提供的扩展点，并不是Spring Boot的特有属性。只不过在原生Spring编码的过程中，我们更多依赖XML配置来引入工具组件；而在SpringBoot体系下，基于`约定大于配置`的理念，很多复杂组件我们不希望通过`@Bean`的方式引入应用中，而是希望以自动的方式将组件相关的Bean自动注入到容器内。此时，我们需要依赖Spring提供的基于SPI模式的ApplicationContextInitializer实现。
+我们可能要在Spring容器refersh刷新之前，提前引入自定义组件的BeanDefinition、修改Environment的PropertySource以支持自定义配置中心等。
+
+只不过在原生Spring编码的过程中，我们更多依赖XML配置来引入工具组件；而在SpringBoot体系下，基于`约定大于配置`的理念，不一定希望使用方以@Bean的方式注入容器。此时，我们需要依赖Spring提供的基于SPI模式的ApplicationContextInitializer实现。
+
+例如，在SpringBoot下，我们一定不希望组件的使用方自己再注入各种增强的BeanFactoryPostProcessor、BeanPostProcessor组件，此时就需要依赖ApplicationContextInitializer的能力完成自动注册。
 
 ### 实现方式
 
-_以向容器内注册一个BeanPostProcessor组件为例_
-
-- 实现ApplicationContextInitializer接口，一般使用GenericApplicationContext泛型
+- 实现ApplicationContextInitializer接口，一般使用GenericApplicationContext泛型：可以操作BeanFactory、BeanDefinition、Environment等
 
 ```java
 public class DemoApplicationContextInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
 
     @Override
     public void initialize(GenericApplicationContext applicationContext) {
+        // 在SpringBoot环境下，我们开发一些工具组件的时候，不一定希望使用方以@Bean的方式注入容器并生效
+        // 此时我们可以通过ApplicationContextInitializer在容器刷新前，将组件的BeanDefinition注入到容器中
+
         // 模拟在SpringBoot中注册一个自定义的BeanPostProcessor
         RootBeanDefinition demoBeanDefinition = new RootBeanDefinition(DemoBootBeanPostProcessor.class);
 
-        applicationContext.registerBean(DemoBootBeanPostProcessor.class,new BeanDefinitionCustomizer() {
+        applicationContext.registerBean(DemoBootBeanPostProcessor.class, new BeanDefinitionCustomizer() {
             // 处理BeanDefinition
             @Override
             public void customize(BeanDefinition beanDefinition) {
                 beanDefinition.getPropertyValues().add("key", "123456");
             }
         });
+
+        // 模拟添加PropertySource
+        Map<String, Object> props = new HashMap<>();
+        props.put("test-key", 1234);
+        MapPropertySource propertySource = new MapPropertySource("my-prop", props);
+        applicationContext.getEnvironment().getPropertySources().addFirst(propertySource);
     }
+
 
     public static class DemoBootBeanPostProcessor implements BeanPostProcessor {
 
@@ -305,7 +348,6 @@ public class DemoApplicationContextInitializer implements ApplicationContextInit
         }
     }
 }
-
 ```
 
 - 在`/resources/META-INF/`路径下创建`spring.factories`文件，使自定义的ApplicationContextInitializer生效
@@ -318,6 +360,41 @@ org.springframework.context.ApplicationContextInitializer=io.lizard.springbootex
 
 ## AutoConfiguration
 
+> Spring Boot - 以完全的约定大于配置的理念，完成上述所有扩展点的整合
+
+### 作用
+
+通过 spring.factories 文件中定义自动配置类，可以注册系统关键 bean。组件通用初始化仍以ApplicationContextInitializer实现，条件初始化通过`@ConditionalOnProperty`和`@ConditionalOnMissingBean`等注解的组合，来实现是否加载定义`BeanFactoryPostProcessor`等组件的BeanDefinition
+
+### 实现方式
+
+- maven 引入 spring-boot-autoconfigure artifact
+
+- 编写ApplicationContextInitializer实现类，并在`spring.factories`文件中引入生效
+
+- 编写条件初始化的Configuration Bean。`@Bean`就可以注入各种我们自定义组件的Definition到容器中
+
+```java
+@Configuration
+@ConditionalOnProperty(LizardDataConfigPropertyConstant.LIZARD_DATA_ENABLE) // 当存在指定属性的配置时
+@ConditionalOnMissingBean(LizardDataAutoProcessor.class)    // 当Bean不存在时
+public class LizardDataAutoConfiguration {
+
+ @Bean
+ public LizardDataAutoProcessor lizardDataAutoProcessor() {
+  return new LizardDataAutoProcessor();
+ }
+
+}
+```
+
+- 在`/resources/META-INF/`路径下创建`spring.factories`文件，使自定义的AutoConfiguration生效
+
+```properties
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+    io.lizard.data.boot.LizardDataAutoConfiguration
+```
+
 **参考**
 
 > 聊聊Spring中的那些扩展机制：http://blog.itpub.net/31555607/viewspace-2214762/
@@ -325,3 +402,5 @@ org.springframework.context.ApplicationContextInitializer=io.lizard.springbootex
 > 详解Spring Framework提供的扩展点：ApplicationContextInitializer应用上下文初始化器，以及它在SpringBoot中的应用: https://cloud.tencent.com/developer/article/1497696
 >
 > @PostConstruct注解: https://www.jianshu.com/p/c52713a78252
+>
+> Apollo 1 融合 Spring 的三个入口: https://www.cnblogs.com/stateis0/p/9247963.html
