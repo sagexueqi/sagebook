@@ -30,20 +30,26 @@ Spring-Framework_Spring框架
 - Spring MVC
 - Spring 扩展机制
 
-RPC
-- RPC基础
-   - RPC工作流程
-   - RPC通信协议的设计
-   - RPC中关键技术点
-   - 关于ServiceMesh的思考
-- Apache Dubbo
-   - Dubbo的高性能&高可用
-   - Dubbo服务上下线策略
-   - Dubbo与Spring Cloud体系
-
-Message Queue
-- kafka
-- 高可靠消息
+Middleware
+ - RPC
+   - RPC基础
+      - RPC工作流程
+      - RPC通信协议的设计
+      - RPC中关键技术点
+      - 关于ServiceMesh的思考
+   - Apache Dubbo
+      - Dubbo的高性能&高可用
+      - Dubbo服务上下线策略
+      - Dubbo与Spring Cloud体系
+ - Message Queue
+   - Apache Kafka
+      - 基本概念
+      - 配置参数
+      - 编码范式
+      - 生产运维
+      - 生产问题回顾
+   - 消息队列选型Poc
+   - 高可靠消息方案
 
 MySQL
 - MySQL存储引擎
@@ -87,3 +93,55 @@ Thinking in Architecture
 - 架构方法论
 
 Domain Driven Design
+
+
+
+
+-------
+* 中间件
+
+    * [Kafka](middleware/kafka.md)
+    * [MySQL](middleware/mysql.md)
+    * [Redis](middleware/redis.md)
+
+* 技术架构
+
+    * [分布式原理](tech_arch/distribution_consistence.md)
+    * [分布式事务](tech_arch/distribution_transaction.md)
+    * [分布式锁](tech_arch/distribution_lock.md)
+    * [分布式ID策略]
+    * [分库分表]
+    * [缓存数据库一致性]
+    * [消息丢失与幂等](tech_arch/message_lost_idempotent.md)
+
+* 系统架构
+
+    * [多活架构]
+    * [限流]
+    * [容错降级]
+    * [微服务网关]
+    * [系统性能优化]
+    * [稳定性与可用性]
+
+* 业务架构
+
+    * [账务清结算]
+    * [热点账户方案]
+    * [超时订单设计]
+    * [通知回调系统]
+    * [订单超时和防重](biz_arch/order_timeout_repeat.md)
+
+* 架构理论
+
+    * [DDD](arch/arch_ddd.md)
+    * [设计模式](arch/arch_design_pattern.md)
+    * [架构杂想](arch/arch_think.md)
+
+* 领域驱动设计(DDD)
+
+* 其他
+
+    * [收藏夹](others/favorites.md)
+    * [读书笔记](others/read_notes.md)
+    * [工作生活]
+    * [区块链]
