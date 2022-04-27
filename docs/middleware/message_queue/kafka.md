@@ -746,3 +746,17 @@ public class Consumer {
 - 业务处理线程放到独立的线程池处理，不在IO线程中同步处理
 - 优化业务处理逻辑，规则层推送被修改用户信息，只做已修改规则的内存更新；
 - 优化数据结构，仅针对有独立计费规则的用户保存计费规则，一般用户仅保留一条默认的计费规则，降低数据库数据表的数据量
+
+**参考：**
+
+> Kafka中文文档：https://kafka.apachecn.org/
+>
+> Kafka万亿级消息实战：https://cloud.tencent.com/developer/article/1825906
+>
+> kafka_pro: https://github.com/youyangkou/kafka_pro
+>
+> kafka学习非常详细的经典教程: https://blog.csdn.net/tangdong3415/article/details/53432166
+>
+> kafka存储机制: https://www.cnblogs.com/cynchanpin/p/7339537.html
+>
+> Kafka导致重复消费原因和解决方案: https://blog.csdn.net/lyonliyang/article/details/107310539
