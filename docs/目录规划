@@ -50,6 +50,7 @@ Middleware
       - 生产问题回顾
    - 消息队列选型Poc
    - 高可靠消息方案
+   - 消息幂等
 
 MySQL
 - MySQL存储引擎

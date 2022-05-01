@@ -8,3 +8,6 @@
 - prometheus-book: https://yunlzheng.gitbook.io/prometheus-book/parti-prometheus-ji-chu/promql/prometheus-metrics-types
 - 撮合系统设计: https://developer.aliyun.com/article/60653
 - MadBOK: https://hanchenhao.github.io/MadBOK/
+- 架构系列：蘑菇街的支付系统2.0架构演进 https://juejin.cn/post/6844903906841985032
+- 美团百亿规模API网关服务Shepherd的设计与实现： https://zhuanlan.zhihu.com/p/374130800
+- 美团配送资金安全治理之对账体系建设： https://tech.meituan.com/2018/03/21/balance-accounts.html
