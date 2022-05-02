@@ -25,6 +25,6 @@
         * [Apache Dubbo](middleware/rpc/apache_dubbo.md)
     * **MessageQueue**
         * [Kafka](middleware/message_queue/kafka.md)
-        * [RabbitMQ和Kafka的选型对比思考](middleware/message_queue/mq_poc.md)
-        * [高可靠消息](middleware/message_queue/highly_reliable_mq.md)
-        * [消息幂等](middleware/message_queue/message_idempotent.md)
+        * [RabbitMQ&Kafka Poc](middleware/message_queue/rabbitmq_kafka_poc.md)
+        * [Highly Reliable](middleware/message_queue/highly_reliable_mq.md)
+        * [Message Idempotent](middleware/message_queue/message_idempotent.md)
