@@ -3,7 +3,7 @@
     * [网络与HTTP](basic/network_http.md)
     * [算法]
 
-* Java
+* [**Java**](java/index.md)
     * [JVM Memory Model](java/jvm_memory_model.md)
     * [Memory Distribution & GC Strategy](java/jvm_distribution_strategy.md)
     * [GC Algorithm & Collector](java/jvm_gc.md)
@@ -28,3 +28,4 @@
         * [RabbitMQ&Kafka Poc](middleware/message_queue/rabbitmq_kafka_poc.md)
         * [Highly Reliable](middleware/message_queue/highly_reliable_mq.md)
         * [Message Idempotent](middleware/message_queue/message_idempotent.md)
+    * **MySQL**
