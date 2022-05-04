@@ -30,3 +30,4 @@
         * [Message Idempotent](middleware/message_queue/message_idempotent.md)
     * **DataBase**
         * [Transaction](middleware/database/transaction.md)
+        * [Lock](middleware/database/lock.md)
