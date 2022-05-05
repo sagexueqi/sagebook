@@ -51,6 +51,16 @@ Middleware
    - 消息队列选型Poc
    - 高可靠消息方案
    - 消息幂等
+ - DataBase
+   - Transaction
+   - MySQL
+    - Engine
+    - Lock
+        - 乐观锁 & 悲观锁
+        - 共享锁 & 排他锁
+        - 不同隔离级别的锁表现
+        - 死锁问题
+    - Index
 
 MySQL
 - MySQL存储引擎
