@@ -1,8 +1,3 @@
-* 基础知识
-    * [安全](basic/security.md)
-    * [网络与HTTP](basic/network_http.md)
-    * [算法]
-
 * [**Java**](java/index.md)
     * [JVM Memory Model](java/jvm_memory_model.md)
     * [Memory Distribution & GC Strategy](java/jvm_distribution_strategy.md)
