@@ -57,8 +57,9 @@ Middleware
     - Engine
     - Lock
         - 乐观锁 & 悲观锁
-        - 共享锁 & 排他锁
-        - 不同隔离级别的锁表现
+        - MySQL锁模式
+        - MySQL锁类型
+            - 不同隔离级别下锁的表现
         - 死锁问题
     - Index
 
