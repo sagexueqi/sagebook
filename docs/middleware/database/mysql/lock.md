@@ -145,6 +145,26 @@ InnoDB支持两种意向锁：
 
 ----
 
+## MySQL行锁类型
+
+![mysql_行锁总结](./images/mysql_行锁总结.png)
+
+### Record Lock - 记录锁
+
+对单条索引记录上加的锁。准确的说，锁是加在索引上而非具体的行上。所以，只有当需要获锁的SQL语句没有使用索引的情况下，MySQL基于优化的策略，会进行锁表。
+
+当基于`一般索引`或`唯一索引`查询时，因为InnoDB聚簇索引的特性，Record Lock在索引上加锁后，也会在索引记录对应的聚簇索引上加锁。这样做的目的也是在于，不同的普通索引最后都会对应同一个聚簇索引，要保证锁在不同的查询条件下仍然互斥。
+
+以 **`SELECT * FROM t_user WHERE f_username='Sage' FOR UPDATE;`** 为例
+
+idx_username可以为普通索引，也可以为唯一索引，我们统称为 _辅助索引_
+
+![mysql_record_lock](./images/mysql_record_lock.png)
+
+### Gap Lock - 间隙锁
+
+### Next-Key Lock - 临键锁
+
 **参考**
 
 > Innodb中的事务隔离级别和锁的关系: https://tech.meituan.com/2014/08/20/innodb-lock.html
@@ -152,3 +172,5 @@ InnoDB支持两种意向锁：
 > MySQL探秘(四)MySQL事务与锁详解: https://princeli.com/mysql%E6%8E%A2%E7%A7%98%E5%9B%9Bmysql%E4%BA%8B%E5%8A%A1%E4%B8%8E%E9%94%81%E8%AF%A6%E8%A7%A3/
 >
 > 全面了解mysql锁机制（InnoDB）与问题排查: https://juejin.im/post/5b82e0196fb9a019f47d1823
+>
+> 详解MySQL中得锁机制及实现: https://cheng-dp.github.io/2019/05/13/mysql-lock/
