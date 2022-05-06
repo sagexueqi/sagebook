@@ -149,21 +149,47 @@ InnoDB支持两种意向锁：
 
 ![mysql_行锁总结](./images/mysql_行锁总结.png)
 
+**加锁时机**
+
+- 执行DDL语句：`INSERT`、`UPDATE`、`DELETE` 时
+- 事务中的查询语句加排他锁(X)：`SELECT ... FOR UPDATE` 时
+- 事务中的查询语句加共享锁(S)：`SELECT ... IN SHARE MODE` 时
+
+**行锁的生效条件**
+
+- 锁是加在索引上而非具体的行上。所以，只有当需要获锁的SQL语句没有使用索引的情况下，MySQL基于优化的策略，会进行锁表
+
 ### Record Lock - 记录锁
 
-对单条索引记录上加的锁。准确的说，锁是加在索引上而非具体的行上。所以，只有当需要获锁的SQL语句没有使用索引的情况下，MySQL基于优化的策略，会进行锁表。
+对单条索引记录上加的锁。
 
 当基于`一般索引`或`唯一索引`查询时，因为InnoDB聚簇索引的特性，Record Lock在索引上加锁后，也会在索引记录对应的聚簇索引上加锁。这样做的目的也是在于，不同的普通索引最后都会对应同一个聚簇索引，要保证锁在不同的查询条件下仍然互斥。
 
-以 **`SELECT * FROM t_user WHERE f_username='Sage' FOR UPDATE;`** 为例
 
-idx_username可以为普通索引，也可以为唯一索引，我们统称为 _辅助索引_
+**加锁情况说明**
+
+SQL：`select * from t_class_teacher where f_teacher_id = 5 for update;`
+
+idx_teacher_id可以为普通索引，也可以为唯一索引，我们统称为 _辅助索引_
 
 ![mysql_record_lock](./images/mysql_record_lock.png)
 
 ### Gap Lock - 间隙锁
 
-### Next-Key Lock - 临键锁
+对索引记录的区间加的锁。可以是在一条索引记录之前，也可以在一条索引记录之后
+
+只有`Repeatable Read`隔离级别存在，作用是保证运行在RR级别的事务在执行`加锁`类动作后，防止其他事务向GAP内插入新的记录，避免产生 **`幻读`** 的情况。
+
+即使查询的条件没有记录，也会在区间中加上`Gap Lock`
+
+**加锁情况说明**
+
+SQL：`select * from t_class_teacher where f_teacher_id = 30 for update;`
+
+idx_teacher_id可以为普通索引，也可以为唯一索引，我们统称为 _辅助索引_
+
+![mysql_gap_lock](./images/mysql_gap_lock.png)
+
 
 **参考**
 

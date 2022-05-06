@@ -24,6 +24,6 @@
         * [Highly Reliable](middleware/message_queue/highly_reliable_mq.md)
         * [Message Idempotent](middleware/message_queue/message_idempotent.md)
     * **DataBase**
-        * [Transaction](middleware/database/transaction.md)
+        * [**Transaction**](middleware/database/transaction.md)
         * **MySQL**
             * [Lock](middleware/database/mysql/lock.md)
