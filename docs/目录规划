@@ -59,7 +59,6 @@ Middleware
         - 乐观锁 & 悲观锁
         - MySQL锁模式
         - MySQL行锁类型
-        - 死锁问题
     - Index
 
 MySQL

@@ -27,3 +27,6 @@
         * [**Transaction**](middleware/database/transaction.md)
         * **MySQL**
             * [Lock](middleware/database/mysql/lock.md)
+
+* Architecture
+    * [**Thinking in Architecture**](architecture/thinking_in_architecture.md)
