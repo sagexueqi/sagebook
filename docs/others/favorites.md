@@ -12,3 +12,6 @@
 - 美团百亿规模API网关服务Shepherd的设计与实现： https://zhuanlan.zhihu.com/p/374130800
 - 美团配送资金安全治理之对账体系建设： https://tech.meituan.com/2018/03/21/balance-accounts.html
 - 如何让百度收录 GitHub Pages 个人博客: https://juejin.cn/post/6844904085007630344
+- 分库分表实战：可能是用户表最佳分库分表方案 https://blog.csdn.net/u014532775/article/details/96453200
+- 百亿流量微服务网关的设计与实现: http://blog.itpub.net/31562044/viewspace-2651041/
+- SpringCloud gateway （史上最全）: https://www.cnblogs.com/crazymakercircle/p/11704077.html

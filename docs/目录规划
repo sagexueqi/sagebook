@@ -61,11 +61,6 @@ Middleware
         - MySQL行锁类型
     - Index
 
-MySQL
-- MySQL存储引擎
-- MySQL索引
-- SQL优化
-
 NoSQL
 - Redis
     - 常用数据结构(zset实现)
@@ -87,20 +82,23 @@ High Availability
 - 多中心架构
 - 限流与降级
 
-Application Architecture
-- 微服务与SOA
-- 幂等性设计
-- 分库分表
-- 超时订单方案
-- 内存撮合设计
+Architecture
+- Application Architecture
+  - 微服务与SOA
+  - 幂等性设计
+  - 分库分表
+  - 超时订单方案
+  - 内存撮合设计
 
-Business Architecture
-- 支付体系
-- 账户清结算
+- Business Architecture
+  - Payment
+    - 支付体系
+    - 账户清结算
+  - Pledge Loan
 
-Thinking in Architecture
-- 设计模式
-- 架构方法论
+- Thinking in Architecture
+  - 设计模式
+  - 架构方法论
 
 Domain Driven Design
 
