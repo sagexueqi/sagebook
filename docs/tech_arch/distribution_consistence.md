@@ -168,16 +168,7 @@ _安全性主要指：已经提交的日志，不论哪一个节点被选举为L
 
 - 始终要符合集群节点数 = 2N+1 的等式，否则减少节点后，集群无法达成共识，进而无法对外提供写服务
 
-**参考：**
-> RAFT论文中文版：https://github.com/maemual/raft-zh_cn/blob/master/raft-zh_cn.md
->
-> RAFT算法动画演示：http://thesecretlivesofdata.com/raft/
->
-> zookeeper-客户端发写请求给follower，是转发给leader写？: https://blog.csdn.net/waltonhuang/article/details/106097257
->
-> Raft-共识算法解析: https://yuerer.com/Raft-%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95%E8%A7%A3%E6%9E%90/
->
-> Raft中 几种特殊情况分析: https://zhuanlan.zhihu.com/p/266860228
+
 
 ----
 
