@@ -29,8 +29,10 @@
             * [Lock](middleware/database/mysql/lock.md)
 
 * Distributed System
-    * [CAP](distributed_system/cap.md)
-    * [Raft](distributed_system/raft.md)
+    * **CAP&Raft**
+        * [CAP](distributed_system/cap.md)
+        * [Raft](distributed_system/raft.md)
+    * [Config Center&Registry Center](distributed_system/config%26registry_center.md)
 
 * Architecture
     * [Thinking in Architecture](architecture/thinking_in_architecture.md)

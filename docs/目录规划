@@ -29,6 +29,7 @@ Spring-Framework_Spring框架
 - Spring JDBC
 - Spring MVC
 - Spring 扩展机制
+- todo: PathMatchingResourcePatternResolver 资源加载
 
 Middleware
  - RPC
@@ -71,16 +72,17 @@ NoSQL
 Distributed System
 
 - CAP&Raft一致性协议
+- 注册中心与配置中心
 - 分布式事务
 - 分布式锁
 - 分布式ID策略
 - 缓存与数据库一致性
-- 注册中心与配置中心
 - 负载均衡与Session共享
 
 High Availability
 - 多中心架构
 - 限流与降级
+- 容量规划
 
 Architecture
 - Application Architecture
@@ -89,6 +91,7 @@ Architecture
   - 分库分表
   - 超时订单方案
   - 内存撮合设计
+  - 异步服务同步化方案
 
 - Business Architecture
   - Payment

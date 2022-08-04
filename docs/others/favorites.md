@@ -15,3 +15,5 @@
 - 分库分表实战：可能是用户表最佳分库分表方案 https://blog.csdn.net/u014532775/article/details/96453200
 - 百亿流量微服务网关的设计与实现: http://blog.itpub.net/31562044/viewspace-2651041/
 - SpringCloud gateway （史上最全）: https://www.cnblogs.com/crazymakercircle/p/11704077.html
+- 浅谈业务级灾备的架构模式: https://mp.weixin.qq.com/s/zPwhnO9ECVua0ER0c8lYAA
+- 看完这篇异地多活的改造，我决定和架构师battle一下｜得物技术: https://segmentfault.com/a/1190000041929385
