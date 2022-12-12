@@ -36,5 +36,6 @@
 
 * Architecture
     * [Thinking in Architecture](architecture/thinking_in_architecture.md)
+    * [Domain Driven Design](architecture/ddd/arch_ddd.md)
     * **Business Architecture**
         * [Payment](architecture/business_architecture/payment_architecture.md)

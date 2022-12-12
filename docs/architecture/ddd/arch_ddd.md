@@ -40,7 +40,7 @@ DDD与微服务的关系是相辅相成的，DDD更多的是业务架构设计�
 ## 架构风格
 
 ### 洋葱架构
-![ddd_洋葱架构](./imgs/ddd_洋葱架构.png)
+![ddd_洋葱架构](./images/ddd_洋葱架构.png)
 - 外层只依赖内层的抽象，符合`依赖倒置(DIP)`原则
 - 越到内层是越不可变的，易于测试的
 
@@ -94,7 +94,7 @@ DDD与微服务的关系是相辅相成的，DDD更多的是业务架构设计�
 
 ### 应用架构
 
-![ddd_应用架构](./imgs/ddd_应用架构.png)
+![ddd_应用架构](./images/ddd_应用架构.png)
 
 ---
 
@@ -159,6 +159,3 @@ DDD与微服务的关系是相辅相成的，DDD更多的是业务架构设计�
 > 阿里技术专家详解DDD系列第四讲：领域层设计规范: https://mp.weixin.qq.com/s/NoRTUSovcO2Yz237k0ceIw#at
 >
 > 基于 DDD 的微服务设计实例代码详解: https://zq99299.github.io/note-book2/ddd/04/01.html#%E9%A1%B9%E7%9B%AE%E5%9B%9E%E9%A1%BE
-
-
--- 数据和动作分离；技术和业务分离
