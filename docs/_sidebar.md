@@ -1,4 +1,4 @@
-* [**Java**](java/index.md)
+* Java
     * [JVM Memory Model](java/jvm_memory_model.md)
     * [Memory Distribution & GC Strategy](java/jvm_distribution_strategy.md)
     * [GC Algorithm & Collector](java/jvm_gc.md)
@@ -36,5 +36,7 @@
 * Architecture
     * [Thinking in Architecture](architecture/thinking_in_architecture.md)
     * [Domain Driven Design](architecture/ddd/arch_ddd.md)
-    * **Business Architecture**
-        * [Payment](architecture/business_architecture/payment_architecture.md)
+
+* Business Solution
+    * [支付业务](./business_solution/payment/payment_architecture.md)
+    * [超时订单处理](./business_solution/order_timeout/order_timeout_repeat.md)
