@@ -37,6 +37,10 @@
     * [Thinking in Architecture](architecture/thinking_in_architecture.md)
     * [Domain Driven Design](architecture/ddd/arch_ddd.md)
 
-* Business Solution
-    * [支付业务](./business_solution/payment/payment_architecture.md)
-    * [超时订单处理](./business_solution/order_timeout/order_timeout_repeat.md)
+* Solution
+    * [支付业务](./solution/payment/payment_architecture.md)
+    * [超时订单处理](./solution/order_timeout/order_timeout_repeat.md)
+    * [分布式事务](./solution/distribution_transaction/distribution_transaction.md)
+
+* Develop Note
+    * [Backend](./develop_note/backend.md)
