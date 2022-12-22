@@ -395,6 +395,19 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
     io.lizard.data.boot.LizardDataAutoConfiguration
 ```
 
+----
+
+## PathMatchingResourcePatternResolver
+
+PathMatchingResourcePatternResolver可以用来解析资源文件，主要是用来解析类路径下的资源文件。当然它也可以用来解析其它资源文件，如基于文件系统的本地资源文件。
+
+```java
+PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+resource = resolver.getResource("classpath*:pom.xml");
+Assert.assertNotNull(resource);
+Assert.assertNotNull(resource.getInputStream());
+```
+
 **参考**
 
 > 聊聊Spring中的那些扩展机制：http://blog.itpub.net/31555607/viewspace-2214762/

@@ -123,7 +123,3 @@
 > 揭秘：达达-京东到家订单派发的技术实战: https://www.sohu.com/a/251506542_168370
 >
 > RocketMQ 延迟消息的使用与分析: https://blog.csdn.net/silence1144/article/details/109902684
-
-----
-
-## 订单防重处理

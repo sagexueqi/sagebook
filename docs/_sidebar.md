@@ -39,7 +39,7 @@
 
 * Solution
     * [支付业务](./solution/payment/payment_architecture.md)
-    * [超时订单处理](./solution/order_timeout/order_timeout_repeat.md)
+    * [超时订单处理](./solution/order_timeout/order_timeout.md)
     * [分布式事务](./solution/distribution_transaction/distribution_transaction.md)
 
 * Develop Note
