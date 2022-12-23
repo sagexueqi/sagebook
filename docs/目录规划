@@ -66,6 +66,11 @@ Architecture
   - 战略设计与战术设计
   - 架构风格
 
+- Develop Note
+  - Backend
+    - Dubbo自定义异常扩展
+    - Apollo配置项加解密扩展
+
 -------
 * 中间件
 
