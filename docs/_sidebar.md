@@ -24,7 +24,6 @@
         * [Kafka](middleware/message_queue/kafka.md)
         * [RabbitMQ&Kafka Poc](middleware/message_queue/rabbitmq_kafka_poc.md)
         * [Highly Reliable](middleware/message_queue/highly_reliable_mq.md)
-        * [Message Idempotent](middleware/message_queue/message_idempotent.md)
     * **DataBase**
         * [Transaction](middleware/database/transaction.md)
         * MySQL
@@ -34,6 +33,7 @@
     * **Application Architecture**
         * [超时订单处理](./architecture/application/order_timeout/order_timeout.md)
         * [分布式事务](./architecture/application/distribution_transaction/distribution_transaction.md)
+        * [消息幂等方案](./architecture/application/message_idempotent/message_idempotent.md)
     * **Business Architecture**
         * [支付业务](./architecture/business/payment/payment_architecture.md)
     * [Thinking in Architecture](architecture/thinking_in_architecture.md)
