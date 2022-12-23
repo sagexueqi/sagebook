@@ -43,4 +43,5 @@
     * [分布式事务](./solution/distribution_transaction/distribution_transaction.md)
 
 * Develop Note
-    * [Backend](./develop_note/backend.md)
+    * [**Backend**](./develop_note/backend/backend.md)
+        * [Dubbo自定义异常扩展](./develop_note/backend/dubbo_exception_enhance.md)

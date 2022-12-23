@@ -39,10 +39,15 @@
 **SOLID原则**
 
 > Single Responsibility Principle：单一职责原则（SRP）
+>
 > Open Closed Principle：开闭原则（OCP）
+>
 > Liskov Substitution Principle：里氏替换原则（LSP）
+>
 > Law of Demeter：迪米特法则（LD与LSP合并为同一个L）
+>
 > Interface Segregation Principle：接口隔离原则（ISP）
+>
 > Dependence Inversion Principle：依赖倒置原则（DIP）
 
 - 无论是采用DDD还是MVC，在进行微服务或者功能模块划分时，`单一职责`原则是一直贯穿其中的；我们有这么多设计规约、范式，目的也是在于某一个某块的功能足够聚合、单一
