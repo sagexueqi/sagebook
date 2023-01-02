@@ -42,3 +42,4 @@
 * Develop Note
     * [**Backend**](./develop_note/backend/backend.md)
         * [Dubbo自定义异常扩展](./develop_note/backend/dubbo_exception_enhance.md)
+        * [Apollo配置项加解密扩展](./develop_note/backend/apollo_config_encrypt.md)
